@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 9: Sim-to-Real Transfer and Evaluation</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-3">
+  <nav class="sidebar-nav part-3">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-9-1">
+      <span class="dot"></span>
+      <span class="label">9.1 Introduction: The Test Environm...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-9-2">
+      <span class="dot"></span>
+      <span class="label">9.2 SIMPLER: The Standard for Simul...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-9-3">
+      <span class="dot"></span>
+      <span class="label">9.3 Natural Language Sim2Real: Brid...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-9-4">
+      <span class="dot"></span>
+      <span class="label">9.4 Three Dimensions of the Sim2Rea...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-9-5">
+      <span class="dot"></span>
+      <span class="label">9.5 The Absence of Evaluation Stand...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-9-6">
+      <span class="dot"></span>
+      <span class="label">9.6 Comparison with Agentic Coding:...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-9-7">
+      <span class="dot"></span>
+      <span class="label">9.7 Open Problems and Outlook</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part III: Toward Agentic Robotics</span>
+        <h1>Chapter 9: Sim-to-Real Transfer and Evaluation</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>In Agentic Coding, the test environment and production environment are nearly identical — Docker guarantees this. In Agentic Robotics, this guarantee is impossible. Visual, physical, and control gaps exist between simulation and reality (the sim2real gap). This chapter covers research that measures and narrows this gap. SIMPLER establishes the standard for simulation-based evaluation, and Natural Language Sim2Real uses language as a tool to bridge the divide.</p>
+</section>
+<section id="sec-9-1" class="content-section">
+<h2>9.1 Introduction: The Test Environment Fidelity Problem</h2>
+<p>In software development, "passes in test, fails in production" is rare. CI/CD pipelines run tests in environments identical to production. Container technology has effectively eliminated cross-environment differences.</p>
+<p>In robotics, "succeeds in simulation, fails in reality" is routine. Simulation rendering differs from real-world visuals, physics engines approximate contact, deformation, and fluids, and control command latency differs. These three dimensions of gap constitute the sim2real gap — this chapter's central topic.</p>
+<p>Why this matters is clear from Chapter 8: agentic loop efficiency depends on iteration speed, and physical experiments take minutes per iteration. If the agentic loop can run in simulation and transfer results to reality, loop speed can accelerate by orders of magnitude. The sim2real gap is the key bottleneck for this acceleration.</p>
+</section>
+<section id="sec-9-2" class="content-section">
+<h2>9.2 SIMPLER: The Standard for Simulation-Based Policy Evaluation</h2>
+<p>SIMPLER [Li et al., 2024] provides an open-source suite of simulation environments for reliably evaluating real-world robot manipulation policies.</p>
+<p>It implements simulations of Google Robot and WidowX BridgeV2 environments, systematically identifying and mitigating control disparity and visual disparity. The key contribution: reliable evaluation is possible without building a complete digital twin.</p>
+<p>SIMPLER demonstrated <strong>strong correlation</strong> between simulation and real-world performance, and accurately reflected policy sensitivity to distribution shift. It evaluates generalist policies including RT-1, RT-1-X, and Octo, providing a comparable benchmark.</p>
+<p>SIMPLER corresponds to Agentic Coding's <strong>staging environment</strong>. Just as code is verified in a test environment before production deployment, robot policies are verified in simulation before real-world deployment. The fundamental difference: Docker makes code test environments nearly identical to production; robot simulation always has a sim2real gap.</p>
+</section>
+<section id="sec-9-3" class="content-section">
+<h2>9.3 Natural Language Sim2Real: Bridging the Gap with Language</h2>
+<p>[UT Austin, 2024] proposes overcoming the visual gap between simulation and reality by using <strong>natural language descriptions</strong> as a common semantic representation.</p>
+<p>Pre-training an image encoder to predict natural language descriptions teaches it domain-invariant representations — simulation images and real images look different but are described by the same language. Small amounts of real-world demos combined with large amounts of simulation demos are used jointly.</p>
+<p>The <strong>25-40% improvement</strong> over CLIP and R3M is impressive — pre-training with just hundreds of image-language pairs exceeded internet-scale pre-training (CLIP, R3M).</p>
+<p>The idea of "using language as an intermediate representation to bridge domain gaps" resonates with RT-H's language motion (see Chapter 5). Whether natural language can serve as a universal tool for narrowing gaps across not just visual but also physical and control domains remains an open question.</p>
+</section>
+<section id="sec-9-4" class="content-section">
+<h2>9.4 Three Dimensions of the Sim2Real Gap</h2>
+<p>The sim2real gap decomposes into three independent dimensions:</p>
+<table class="styled-table">
+<thead><tr>
+<th>Gap Dimension</th>
+<th>Description</th>
+<th>Approach</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Visual gap</strong></td>
+<td>Rendering vs real images</td>
+<td>Domain randomization, language intermediary (NL Sim2Real)</td>
+</tr>
+<tr>
+<td><strong>Physical gap</strong></td>
+<td>Simulated vs real physics</td>
+<td>System identification, domain randomization</td>
+</tr>
+<tr>
+<td><strong>Control gap</strong></td>
+<td>Simulated vs real control</td>
+<td>SIMPLER's control disparity mitigation</td>
+</tr>
+</tbody></table>
+<p>Because the dimensions are independent, solving one still leaves others as bottlenecks. SIMPLER addresses control and visual gaps; NL Sim2Real focuses on the visual gap. The physical gap is the hardest dimension, limited by the accuracy of contact, deformation, and fluid simulation in current technology.</p>
+</section>
+<section id="sec-9-5" class="content-section">
+<h2>9.5 The Absence of Evaluation Standards: Where Is Agentic Robotics' SWE-bench?</h2>
+<p>Just as SWE-bench accelerated Agentic Coding's development, Agentic Robotics needs standardized benchmarks. The current state is fragmented — each paper evaluates on its own environment and metrics.</p>
+<table class="styled-table">
+<thead><tr>
+<th>Evaluation System</th>
+<th>Strength</th>
+<th>Limitation</th>
+</tr></thead><tbody>
+<tr>
+<td>SIMPLER</td>
+<td>Reproducible sim evaluation</td>
+<td>Incomplete sim-real correlation</td>
+</tr>
+<tr>
+<td>CaP-X (Ch 3)</td>
+<td>Agentic coding metrics</td>
+<td>Early stage</td>
+</tr>
+<tr>
+<td>Open X-Embodiment</td>
+<td>Cross-embodiment comparison</td>
+<td>No standardized protocol</td>
+</tr>
+</tbody></table>
+<p>Four fundamental evaluation difficulties exist: <strong>environment non-reproducibility</strong> (physically identical setups are impossible), <strong>metric diversity</strong> (task success, execution time, safety violations, generalization all matter), <strong>embodiment diversity</strong> (different action spaces prevent fair comparison), and <strong>cost</strong> (large-scale physical experiments require massive time and resources — AutoRT's 77,000 episodes took 7 months).</p>
+</section>
+<section id="sec-9-6" class="content-section">
+<h2>9.6 Comparison with Agentic Coding: The Fundamental Difference in Test Fidelity</h2>
+<p>The verification gap between Agentic Coding and Agentic Robotics is one of the two most severe across the seven dimensions (5/5 severity).</p>
+<p>Code unit tests run in milliseconds; thousands execute in minutes. The robot equivalent of a "unit test" does not exist. Each physical trial takes minutes and requires human supervision.</p>
+<p>More fundamentally, code test fidelity is nearly 100% — test environments match production. Simulation test fidelity is limited by the sim2real gap. SIMPLER showed "strong correlation," but correlation is not identity.</p>
+<p>This gap is irreducible in principle. No matter how precise simulation becomes, perfect simulation of contact dynamics cannot be achieved due to approximation limits in current physics modeling. The solution direction is not "perfect simulation" but "imperfect but useful simulation + efficient real-world verification."</p>
+</section>
+<section id="sec-9-7" class="content-section">
+<h2>9.7 Open Problems and Outlook</h2>
+<p>First, establishing an <strong>integrated benchmark suite</strong> that unifies SIMPLER's simulation environments, CaP-X's agentic metrics, and Open X-Embodiment's cross-embodiment protocols. SWE-bench's impact on Agentic Coding proves that such a standard would accelerate Agentic Robotics development.</p>
+<p>Second, <strong>adaptive sim2real transfer</strong> — rather than deploying simulation-trained policies directly to reality, rapidly adapting them with small amounts of real-world experience. PragmaBot's experience-based learning (see Chapter 8) provides early clues.</p>
+<p>Third, <strong>fleet-scale verification</strong>. As AutoRT demonstrated, operating multiple robots simultaneously increases verification throughput. However, this requires Google-scale infrastructure, raising accessibility concerns. Open-source fleet management systems are needed.</p>
+<p>The most promising convergence direction is <strong>hierarchical verification</strong>: high-level plans verified via scene graphs (VeriGraph, Chapter 7), mid-level via code (Code-as-Symbolic-Planner, Chapters 3 and 5), low-level via simulation (SIMPLER) — a multi-layer verification pipeline where each level uses the most efficient verification method, reserving physical experiments for final confirmation only.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch08.html" class="prev">&larr; Ch.8</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch10.html" class="next">Ch.10 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch9-ref-1" value="1">Li, X. et al., "Evaluating Real-World Robot Manipulation Policies in Simulation (SIMPLER)," arXiv:2405.05941, 2024.</li>
+  <li id="ch9-ref-2" value="2">Lang4Sim2Real, "Natural Language Can Help Bridge the Sim2Real Gap," arXiv:2405.10020, 2024.</li>
+  <li id="ch9-ref-3" value="3">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch9-ref-4" value="4">Fu, M. et al., "CaP-X: Benchmarking Coding Agents for Robot Manipulation," arXiv:2603.22435, 2026.</li>
+  <li id="ch9-ref-5" value="5">Open X-Embodiment Collaboration, "Open X-Embodiment: Robotic Learning Datasets and RT-X Models," arXiv:2310.08864, 2023.</li>
+  <li id="ch9-ref-6" value="6">Ekpo, D. et al., "VeriGraph: Scene Graphs for Execution Verifiable Robot Planning," arXiv:2411.10446, 2024.</li>
+  <li id="ch9-ref-7" value="7">Chen, Y. et al., "Code-as-Symbolic-Planner: Leveraging Code Generation for Task and Motion Planning," arXiv:2503.01700, 2025.</li>
+  <li id="ch9-ref-8" value="8">Tian, S. et al., "Bridging the Sim2Real Gap with CLIP-based Pre-trained Vision Encoders for Robot Manipulation," 2025.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch08.html" class="prev">&larr; Ch.8</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch10.html" class="next">Ch.10 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

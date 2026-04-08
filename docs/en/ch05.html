@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 5: Hierarchical Planning — From High-Level to Low-Level</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-2">
+  <nav class="sidebar-nav part-2">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-1">
+      <span class="dot"></span>
+      <span class="label">5.1 Introduction: Why Hierarchy Is ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-2">
+      <span class="dot"></span>
+      <span class="label">5.2 AutoTAMP: The Formal Verificati...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-3">
+      <span class="dot"></span>
+      <span class="label">5.3 RT-H: Language as Intermediate ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-4">
+      <span class="dot"></span>
+      <span class="label">5.4 Hi Robot: Alignment with Human ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-5">
+      <span class="dot"></span>
+      <span class="label">5.5 HAMSTER: Leveraging Off-Domain ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-6">
+      <span class="dot"></span>
+      <span class="label">5.6 Four Forms of Hierarchical Sepa...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-7">
+      <span class="dot"></span>
+      <span class="label">5.7 Comparison with Agentic Coding:...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-8">
+      <span class="dot"></span>
+      <span class="label">5.8 Open Problems and Outlook</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part II: The VLA Revolution</span>
+        <h1>Chapter 5: Hierarchical Planning — From High-Level to Low-Level</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>Between the instruction "make a sandwich" and joint torque commands lies a vast abstraction gap. LLM Planners excel at high-level planning but cannot perform precise motor control; VLAs directly output actions but struggle with complex reasoning. This chapter examines four approaches to hierarchically bridging these two worlds: formal specification (AutoTAMP), language motion (RT-H), real-time feedback integration (Hi Robot), and off-domain data utilization (HAMSTER).</p>
+</section>
+<section id="sec-5-1" class="content-section">
+<h2>5.1 Introduction: Why Hierarchy Is Necessary</h2>
+<p>In Agentic Coding, hierarchical abstraction comes naturally. Given "fix this bug," an agent first explores relevant files (high-level), identifies the specific function (mid-level), and edits code (low-level). Each level's actions are discrete and interpretable, with IDE autocomplete handling low-level details.</p>
+<p>In robotics, this hierarchy is not self-evident. The distance from the high-level instruction "pick up the cup" to continuous torque commands across 7 degrees of freedom is far greater than in coding. And what to use as the intermediate representation — formal logic? language motion? 2D paths? atomic commands? — is a critical design decision.</p>
+<p>Five reasons consistently cited across all hierarchical approaches: (1) abstraction level mismatch, (2) data efficiency through separate training, (3) off-domain data utilization, (4) ease of human intervention, and (5) debuggability and interpretability.</p>
+</section>
+<section id="sec-5-2" class="content-section">
+<h2>5.2 AutoTAMP: The Formal Verification Path</h2>
+<p>AutoTAMP [Chen et al., 2023] uses the LLM not as a direct planner but as a <strong>translator</strong> from natural language to formal specifications (Signal Temporal Logic, etc.) and a <strong>checker</strong>. The key insight: "it is better to use the LLM as a preprocessor and verifier for planners than as the planner itself."</p>
+<p>The LLM translates natural language task descriptions into formal representations like STL, which traditional TAMP algorithms consume to produce task and motion plans. <strong>Autoregressive Re-prompting</strong> automatically detects and corrects both syntactic and semantic errors.</p>
+<p>Results were strong: GPT-4 + AutoTAMP achieved 82.5-87.7% on single-agent tasks and 100% on multi-agent tasks with full AutoTAMP, significantly outperforming direct LLM planning on geometrically and temporally constrained tasks.</p>
+<p>AutoTAMP's core idea — "LLM as translator, classical methods as executor" — was directly inherited by Code-as-Symbolic-Planner [Chen et al., 2025] (see Chapter 3).</p>
+</section>
+<section id="sec-5-3" class="content-section">
+<h2>5.3 RT-H: Language as Intermediate Representation</h2>
+<p>RT-H [Belkhale et al., 2024] proposes a completely different intermediate representation: <strong>language motion</strong>. Fine-grained language descriptions like "move arm forward" and "close gripper" bridge high-level tasks and low-level actions.</p>
+<p>The key insight is that semantically different tasks may share similar low-level motions. "Pick up the cup" and "pour from the bottle" are entirely different tasks, but "extend arm forward" is a shared low-level motion. Language motion makes this shared structure explicit, improving data efficiency.</p>
+<p>RT-H additionally enables <strong>in-execution human correction</strong> — users can modify robot behavior in real-time at the language motion level, naturally integrating corrections like "not that one, move left."</p>
+</section>
+<section id="sec-5-4" class="content-section">
+<h2>5.4 Hi Robot: Alignment with Human Intent</h2>
+<p>Hi Robot [Shi et al., 2025] adds <strong>real-time human feedback integration</strong> to hierarchical VLAs. A high-level VLM interprets current observations and user utterances to generate atomic commands ("grasp the cup"), which a low-level policy executes.</p>
+<p>Hi Robot's core contribution is real-time response to user corrections like "not that one." Evaluated on single-arm, bimanual, and mobile platforms across scenario-based tasks (table clearing, sandwich making, grocery shopping), it outperformed both API-based VLMs and flat VLAs on human intent alignment and task success.</p>
+</section>
+<section id="sec-5-5" class="content-section">
+<h2>5.5 HAMSTER: Leveraging Off-Domain Data</h2>
+<p>HAMSTER [Li et al., 2025] delivers a key message: hierarchical separation enables not just abstraction but <strong>off-domain data utilization</strong>.</p>
+<p>A high-level VLM predicts 2D end-effector paths from RGB images and task descriptions, while a low-level 3D-aware policy performs precise manipulation along these paths. Critically, the high-level VLM can be fine-tuned with <strong>action-free videos, hand-drawn sketches, and simulation data</strong> — cheap alternatives to expensive robot data.</p>
+<p>On real robots, HAMSTER achieved +20% average success rate over OpenVLA (7 generalization axes), a 50% relative improvement, demonstrating that off-domain data can overcome gaps in embodiment, dynamics, visual appearance, and task semantics.</p>
+</section>
+<section id="sec-5-6" class="content-section">
+<h2>5.6 Four Forms of Hierarchical Separation</h2>
+<p>Comparing the four approaches:</p>
+<table class="styled-table">
+<thead><tr>
+<th>Form</th>
+<th>High-Level</th>
+<th>Intermediate</th>
+<th>Low-Level</th>
+<th>Core Strength</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Formal spec</strong> (AutoTAMP)</td>
+<td>LLM → STL/PDDL</td>
+<td>Formal logic</td>
+<td>TAMP solver</td>
+<td>Verifiability</td>
+</tr>
+<tr>
+<td><strong>Language motion</strong> (RT-H)</td>
+<td>Task instruction</td>
+<td>Language motion</td>
+<td>Action output</td>
+<td>Data efficiency, human correction</td>
+</tr>
+<tr>
+<td><strong>Atomic command</strong> (Hi Robot)</td>
+<td>VLM → atomic cmd</td>
+<td>Atomic commands</td>
+<td>Low-level policy</td>
+<td>Real-time human feedback</td>
+</tr>
+<tr>
+<td><strong>2D path</strong> (HAMSTER)</td>
+<td>VLM → 2D path</td>
+<td>2D path</td>
+<td>3D-aware policy</td>
+<td>Off-domain data utilization</td>
+</tr>
+</tbody></table>
+<p>GR00T N1's Dual-System Architecture (see Chapter 4) implements this hierarchical separation <strong>at the architecture level</strong>: System 2 (VLM) corresponds to the high-level of Hi Robot/HAMSTER, System 1 (Diffusion Transformer) to the low-level policy.</p>
+</section>
+<section id="sec-5-7" class="content-section">
+<h2>5.7 Comparison with Agentic Coding: The Naturalness of Abstraction</h2>
+<p>Understanding why hierarchical separation is so difficult in robotics but natural in Agentic Coding reveals a fundamental difference.</p>
+<p>In Agentic Coding, abstraction layers are <strong>intrinsic to programming languages</strong>. Functions, classes, modules, packages — each level of abstraction is built into language design, and IDE autocomplete smoothes transitions between layers. The path from high-level intent ("build an HTTP server") to low-level implementation (<code>socket.bind()</code>) is well-paved by frameworks and libraries.</p>
+<p>In robotics, these abstractions must be <strong>manually designed</strong>. RT-H's language motion, HAMSTER's 2D paths, Hi Robot's atomic commands — each is a researcher-designed intermediate representation. CaP-X's discovery of "dependence on human-crafted abstraction" (see Chapter 3) points precisely to this problem.</p>
+<p>AutoTAMP's formal verification approach is particularly interesting. The pattern "LLM generates code, linter/compiler/tests verify" from Agentic Coding is structurally identical to "LLM generates formal spec, TAMP solver verifies" from AutoTAMP. The difference: code verification has a mature toolchain (type checkers, linters, test frameworks), while robot TAMP verification is still nascent.</p>
+</section>
+<section id="sec-5-8" class="content-section">
+<h2>5.8 Open Problems and Outlook</h2>
+<p>The most fundamental open problem is <strong>determining the optimal number of layers and intermediate representation</strong>. Currently 2-3 layers predominate, but complex long-horizon tasks may require more. The optimal choice of intermediate representation (language? code? 2D path? formal logic?) may be task- and environment-dependent.</p>
+<p>The second problem is <strong>inter-layer information loss</strong>. Information inevitably degrades as it passes through abstraction layers. VLM inference latency becoming a system bottleneck in Hi Robot illustrates how interface design between layers determines overall system performance.</p>
+<p>A promising convergence direction is <strong>code-based hierarchical planning</strong>. Combining Code-as-Symbolic-Planner's "code as solver/planner/checker" with HAMSTER/Hi Robot's "VLM high-level, policy low-level" structure could let code serve as a verifiable intermediate representation that simultaneously handles information transfer and verification between layers.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch04.html" class="prev">&larr; Ch.4</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch06.html" class="next">Ch.6 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch5-ref-1" value="1">Chen, Y. et al., "AutoTAMP: Autoregressive Task and Motion Planning with LLMs as Translators and Checkers," arXiv:2306.06531, 2023.</li>
+  <li id="ch5-ref-2" value="2">Belkhale, S. et al., "RT-H: Action Hierarchies Using Language," arXiv:2403.01823, 2024.</li>
+  <li id="ch5-ref-3" value="3">Shi, L. X. et al., "Hi Robot: Open-Ended Instruction Following with Hierarchical Vision-Language-Action Models," arXiv:2502.19417, 2025.</li>
+  <li id="ch5-ref-4" value="4">Li, J. et al., "HAMSTER: Hierarchical Action Models for Open-World Robot Manipulation," arXiv:2502.05485, 2025.</li>
+  <li id="ch5-ref-5" value="5">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch5-ref-6" value="6">Chen, Y. et al., "Code-as-Symbolic-Planner: Leveraging Code Generation for Task and Motion Planning," arXiv:2503.01700, 2025.</li>
+  <li id="ch5-ref-7" value="7">Kim, M. J. et al., "OpenVLA: An Open-Source Vision-Language-Action Model," arXiv:2406.09246, 2024.</li>
+  <li id="ch5-ref-8" value="8">Fu, M. et al., "CaP-X: Benchmarking Coding Agents for Robot Manipulation," arXiv:2603.22435, 2026.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch04.html" class="prev">&larr; Ch.4</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch06.html" class="next">Ch.6 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

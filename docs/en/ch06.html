@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 6: Low-Level Control — Diffusion Policy and 3D Representations</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-2">
+  <nav class="sidebar-nav part-2">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-1">
+      <span class="dot"></span>
+      <span class="label">6.1 Introduction: Between Determini...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-2">
+      <span class="dot"></span>
+      <span class="label">6.2 Diffusion Policy: The Standard ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-3">
+      <span class="dot"></span>
+      <span class="label">6.3 3D Diffuser Actor: Integrating ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-4">
+      <span class="dot"></span>
+      <span class="label">6.4 DROID: Large-Scale In-the-Wild ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-5">
+      <span class="dot"></span>
+      <span class="label">6.5 Design Axes of Low-Level Contro...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-6">
+      <span class="dot"></span>
+      <span class="label">6.6 Comparison with Agentic Coding:...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-7">
+      <span class="dot"></span>
+      <span class="label">6.7 Open Problems and Outlook</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part II: The VLA Revolution</span>
+        <h1>Chapter 6: Low-Level Control — Diffusion Policy and 3D Representations</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>If high-level planning decides "what to do," low-level control decides "how to do it." This chapter covers the physical frontier of robot control. Diffusion Policy established the standard for stochastic action generation, 3D Diffuser Actor integrated 3D spatial representations into policies, and DROID built the foundation for generalization through large-scale in-the-wild data. This low-level domain has no counterpart in Agentic Coding — it is the challenge unique to the physical world.</p>
+</section>
+<section id="sec-6-1" class="content-section">
+<h2>6.1 Introduction: Between Deterministic Execution and Stochastic Policies</h2>
+<p>In Agentic Coding, execution is deterministic. <code>print("hello")</code> always outputs "hello." In robotics, executing "pick up the cup" is stochastic. The same command under the same initial conditions yields different results due to subtle physical variations. Contact dynamics follow chaotic dynamics sensitive to initial conditions, and environmental non-stationarity (temperature, humidity, wear) continuously alters conditions.</p>
+<p>Designing control policies in this stochastic world is a fundamentally different problem from writing code. There may be multiple correct answers (multimodal distributions), failure costs are irreversible, and real-time response (10-1000Hz) is required.</p>
+</section>
+<section id="sec-6-2" class="content-section">
+<h2>6.2 Diffusion Policy: The Standard for Stochastic Action Generation</h2>
+<p>Diffusion Policy [Chi et al., 2023] generates robot actions through a conditional denoising diffusion process — starting from noise and progressively refining to produce observation-conditioned action sequences.</p>
+<p>Its three key strengths are:</p>
+<p><strong>Multimodal action distribution handling.</strong> There are multiple valid ways to grasp a cup — from above, from the side, by the handle. Deterministic policies average across these modes, producing an action that belongs to none. Diffusion Policy selects one valid mode, generating a coherent action.</p>
+<p><strong>High-dimensional action space support.</strong> The diffusion process scales effectively with action dimensionality, suiting multi-joint robots and dexterous manipulation.</p>
+<p><strong>Action chunking.</strong> A single inference generates a sequence of actions across multiple timesteps, reducing inference frequency while maintaining temporal coherence. This technique became the low-level policy backbone of subsequent VLAs (Octo, GR00T N1).</p>
+<p>The result — an average 46.9% improvement over prior SOTA across 12 tasks — was decisive. While not a VLA itself, Diffusion Policy formed the <strong>low-level backbone</strong> of pi0, Octo, and GR00T N1, undergirding the entire field.</p>
+</section>
+<section id="sec-6-3" class="content-section">
+<h2>6.3 3D Diffuser Actor: Integrating 3D Spatial Awareness</h2>
+<p>3D Diffuser Actor [Ke et al., 2024] overcomes Diffusion Policy's 2D observation limitation by directly incorporating point clouds and 3D scene representations as policy inputs, enabling depth information and 3D geometric reasoning.</p>
+<p>The importance of 3D representations is especially pronounced in manipulation. For "pick up the cup," 2D images alone make it difficult to accurately determine distance to the cup, 3D shape, and spatial relationship between gripper and cup. Point clouds provide this information directly.</p>
+<p>However, 3D representations carry costs: depth sensor noise, computational expense of point cloud processing, and field-of-view limitations from sensor placement.</p>
+</section>
+<section id="sec-6-4" class="content-section">
+<h2>6.4 DROID: Large-Scale In-the-Wild Data</h2>
+<p>DROID [Khazatsky et al., 2024] tackles low-level policy generalization through data scale. With 76,000 trajectories from 13 institutions across 564 scenes, it is the largest in-the-wild robot manipulation dataset in history.</p>
+<p>DROID's core value is <strong>internalizing environmental diversity</strong>. Data collected from diverse environments worldwide naturally encompasses variations in lighting, backgrounds, object types, and table heights, improving policy generalization. DROID served as training data for Octo and OpenVLA, forming the data foundation of the open-source VLA ecosystem alongside Open X-Embodiment (see Chapter 4).</p>
+</section>
+<section id="sec-6-5" class="content-section">
+<h2>6.5 Design Axes of Low-Level Control</h2>
+<p>Current low-level control involves three key design decisions:</p>
+<table class="styled-table">
+<thead><tr>
+<th>Axis</th>
+<th>Options</th>
+<th>Tradeoff</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Action generation</strong></td>
+<td>Diffusion / Flow matching / Auto-regressive</td>
+<td>Multimodal distribution vs generation speed vs training efficiency</td>
+</tr>
+<tr>
+<td><strong>Observation representation</strong></td>
+<td>2D image / Depth / Point cloud / Tactile</td>
+<td>Information richness vs computation vs sensor availability</td>
+</tr>
+<tr>
+<td><strong>Temporal resolution</strong></td>
+<td>Single-step / Action chunking / Trajectory</td>
+<td>Responsiveness vs coherence vs inference cost</td>
+</tr>
+</tbody></table>
+<p>pi0's flow matching enables faster generation than diffusion; FAST's DCT-based tokenization achieves high-frequency precision even with auto-regressive generation; GR00T N1 implements System 1 with a diffusion transformer. The optimal combination has not yet converged.</p>
+</section>
+<section id="sec-6-6" class="content-section">
+<h2>6.6 Comparison with Agentic Coding: A Domain Without Counterpart</h2>
+<p>Low-level control is the topic in this book most distant from Agentic Coding. Three points explain why this difference is fundamental.</p>
+<p><strong>Deterministic execution vs stochastic policies.</strong> Every action of a code agent — file reads, code edits, test runs — is deterministic. Same input, same result. Diffusion Policy explicitly learns stochastic policies. This is an honest acknowledgment of physical-world uncertainty, and unnecessary complexity in the digital world.</p>
+<p><strong>Discrete actions vs continuous control.</strong> Code agent actions are discrete — "open file," "call function," "edit line." Start and end are clear. Robot low-level control is continuous — joint torques or velocities must be output continuously at Hz-level rates. When "the cup has been grasped" is complete is unclear; defining action boundaries themselves is the problem.</p>
+<p><strong>The absence of contact dynamics.</strong> Code has no "contact." Calling an API returns a result. In robot low-level control, physical contact with objects is central. Force distribution, friction, and deformation at the moment of contact are only partially observable through sensors, and minute differences separate success from failure. This is why robot manipulation is "the last-centimeter problem."</p>
+<p>Because of these three differences, Agentic Coding's success strategies (unlimited iteration, instant feedback, deterministic verification) cannot be directly applied to low-level control. Instead, what is needed are policies that are stochastic yet robust, integration of real-time sensory feedback, and simulation-based pre-verification.</p>
+</section>
+<section id="sec-6-7" class="content-section">
+<h2>6.7 Open Problems and Outlook</h2>
+<p>Three core open problems in low-level control:</p>
+<p><strong>Real-time inference speed.</strong> A gap remains between diffusion/flow matching generation speed and robot control rates (100Hz+). Action chunking mitigates this, but long chunks reduce responsiveness. Edge device inference optimization (quantization, pruning, distillation) is the practical path forward (see Chapter 10, Open Problem 7).</p>
+<p><strong>Tactile feedback integration.</strong> Most current policies rely on visual input. But for precision manipulation (grasping eggs, folding cloth, tightening screws), tactile feedback is essential. Research integrating tactile sensor data into diffusion policies remains in early stages.</p>
+<p><strong>Contact-rich manipulation.</strong> Tasks with rich contact — opening doors, pushing drawers, assembling objects — where contact dynamics must be accurately modeled and controlled remain extremely challenging. Current VLAs and diffusion policies are most successful on relatively simple pick-and-place; extending to contact-rich manipulation is the next frontier.</p>
+<p>The most promising direction is <strong>combination with hierarchical approaches</strong> (see Chapter 5). A division where high-level VLMs decide "what to grasp and where" while low-level diffusion policies handle the precision control of "how to grasp" is currently most effective. HAMSTER [Li et al., 2025] and GR00T N1 [NVIDIA, 2025] exemplify this direction.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch05.html" class="prev">&larr; Ch.5</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch07.html" class="next">Ch.7 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch6-ref-1" value="1">Chi, C. et al., "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion," arXiv:2303.04137, 2023.</li>
+  <li id="ch6-ref-2" value="2">Ke, T. et al., "3D Diffuser Actor: Policy Diffusion with 3D Scene Representations," arXiv:2402.10885, 2024.</li>
+  <li id="ch6-ref-3" value="3">Khazatsky, A. et al., "DROID: A Large-Scale In-The-Wild Robot Manipulation Dataset," arXiv:2403.12945, 2024.</li>
+  <li id="ch6-ref-4" value="4">Black, K. et al., "π0: A Vision-Language-Action Flow Model for General Robot Control," arXiv:2410.24164, 2024.</li>
+  <li id="ch6-ref-5" value="5">FAST, "Efficient Action Tokenization for Vision-Language-Action Models," arXiv:2501.09747, 2025.</li>
+  <li id="ch6-ref-6" value="6">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch6-ref-7" value="7">Li, J. et al., "HAMSTER: Hierarchical Action Models for Open-World Robot Manipulation," arXiv:2502.05485, 2025.</li>
+  <li id="ch6-ref-8" value="8">Ghosh, D. et al., "Octo: An Open-Source Generalist Robot Policy," arXiv:2405.12213, 2024.</li>
+  <li id="ch6-ref-9" value="9">Kim, M. J. et al., "OpenVLA: An Open-Source Vision-Language-Action Model," arXiv:2406.09246, 2024.</li>
+  <li id="ch6-ref-10" value="10">Open X-Embodiment Collaboration, "Open X-Embodiment: Robotic Learning Datasets and RT-X Models," arXiv:2310.08864, 2023.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch05.html" class="prev">&larr; Ch.5</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch07.html" class="next">Ch.7 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

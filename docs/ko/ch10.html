@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 10: Agentic Coding vs Agentic Robotics — 간극과 미래</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-4">
+  <nav class="sidebar-nav part-4">
+    <a class="nav-dot active" data-section="sec-요약">
+      <span class="dot"></span>
+      <span class="label">요약</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-1">
+      <span class="dot"></span>
+      <span class="label">10.1 도입: 동일한 루프, 근본적으로 다른 세계</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-2">
+      <span class="dot"></span>
+      <span class="label">10.2 7대 차원 종합 분석</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-3">
+      <span class="dot"></span>
+      <span class="label">10.3 세 가지 등급의 간극</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-4">
+      <span class="dot"></span>
+      <span class="label">10.4 Agentic Coding의 성공 요인을 Robotic...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-5">
+      <span class="dot"></span>
+      <span class="label">10.5 8대 미해결 문제</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-6">
+      <span class="dot"></span>
+      <span class="label">10.6 시간축 전망: 다음 전환은 무엇인가</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-7">
+      <span class="dot"></span>
+      <span class="label">10.7 Agentic Coding과의 대비: 최종 종합</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-8">
+      <span class="dot"></span>
+      <span class="label">10.8 결론: 물리 세계를 위한 새로운 공학</span>
+    </a>
+    <a class="nav-dot" data-section="sec-참고문헌">
+      <span class="dot"></span>
+      <span class="label">참고문헌</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part IV: 근본적 차이</span>
+        <h1>Chapter 10: Agentic Coding vs Agentic Robotics — 간극과 미래</h1>
+        <div class="chapter-meta">
+          <span>집필일: 2026-04-08</span>
+          <span>최종수정일: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-요약" class="content-section">
+<h2>요약</h2>
+<p>이 책은 2022년 LLM Planner에서 2026년 Agentic Robotics까지의 연구 흐름을 추적하면서, Agentic Coding이라는 비교 축을 일관되게 유지했습니다. 이 마지막 챕터에서 7대 차원의 간극을 종합 분석하고, 해소 가능한 것과 원리적으로 불가능한 것을 구분하며, 물리 에이전트가 디지털 에이전트의 성숙도에 도달하기 위한 경로를 전망합니다.</p>
+</section>
+<section id="sec-10-1" class="content-section">
+<h2>10.1 도입: 동일한 루프, 근본적으로 다른 세계</h2>
+<p>이 책 전체를 관통하는 핵심 관찰은 단순합니다. <strong>에이전틱 루프의 구조는 동일하지만, 물리 세계가 각 단계의 난이도를 근본적으로 다르게 만듭니다.</strong></p>
+<p>관찰 → 계획 → 실행 → 검증 → 반성 → 기억 → 재시도. Claude Code가 이 루프를 수초 단위로 반복하며 production-ready 수준에 도달한 반면, PragmaBot은 같은 구조의 루프를 수분 단위로 실행하며 84%의 성공률을 보입니다 (<a href="ch08.html">Chapter 8</a>). BUMBLE은 건물 규모에서 47.1%에 머뭅니다. 이 격차의 정확한 지도를 그리는 것이 이 챕터의 목표입니다.</p>
+</section>
+<section id="sec-10-2" class="content-section">
+<h2>10.2 7대 차원 종합 분석</h2>
+<h3>차원 1: Error Feedback — 피드백의 질과 속도 [★★★★★]</h3>
+<p>코드 에러는 구조화된 텍스트입니다. "File X, Line Y, TypeError" — 정확한 파일, 정확한 줄, 정확한 에러 유형. 정보 채널의 대역폭이 사실상 무한합니다.</p>
+<p>물리 에러는 노이즈가 섞인 다중 감각 데이터입니다. 그리퍼가 컵을 놓쳤을 때, 원인이 힘 부족인지, 미끄러짐인지, 위치 오차인지 즉시 알 수 없습니다. REFLECT [Liu et al., 2023]가 VLM으로 실패 원인을 추론하지만, 작업 유형에 따라 69-79% 수준입니다 (<a href="ch08.html">Chapter 8</a>). VeriGraph [Ekpo et al., 2024]가 씬 그래프로 피드백을 구조화하지만, 세밀한 조작 실패는 여전히 포착하지 못합니다 (<a href="ch07.html">Chapter 7</a>).</p>
+<p><strong>이 간극이 가장 근본적인 병목입니다.</strong> 피드백의 질이 전체 에이전틱 루프의 효율을 결정합니다. 물리 세계의 에러를 "스택 트레이스 수준"의 명확성으로 변환하는 것이 Agentic Robotics의 핵심 과제입니다.</p>
+<h3>차원 2: Execution Determinism — 동일 명령, 다른 결과 [★★★★☆]</h3>
+<p>동일한 코드와 입력은 동일한 결과를 보장합니다. Docker가 환경까지 격리합니다.</p>
+<p>동일한 pick-and-place 명령은 매번 다른 결과를 낳습니다. Diffusion Policy [Chi et al., 2023]가 명시적으로 확률적 정책을 모델링하는 것은 이 본질적 불확실성을 인정하는 것입니다 (<a href="ch06.html">Chapter 6</a>). DROID [Khazatsky et al., 2024]가 13개 기관, 564개 장면의 대규모 데이터로 환경 다양성을 내재화하려 시도하지만, 결정론적 재현성은 원리적으로 달성 불가능합니다.</p>
+<p><strong>해결 방향</strong>: "결정론적"이 아닌 "확률적이지만 안정적인(robust)" 시스템 설계. 실패를 예방하려는 것이 아니라, 실패에도 회복 가능한 시스템을 구축하는 것입니다.</p>
+<h3>차원 3: State Representation — 세계를 어떻게 보는가 [★★★★☆]</h3>
+<p>코드베이스는 완전 관측 가능합니다. AST가 의미 구조를 정확히 표현하고, 파일 시스템이 모든 상태를 노출합니다.</p>
+<p>물리 환경은 부분 관측입니다. 카메라 시야 밖의 물체, 가려진 물체, 내부 상태(서랍 안의 물건)를 모릅니다. SayPlan [Rana et al., 2023]의 3D 씬 그래프가 구조적 표현을 제공하고, RoboEXP [Jiang et al., 2024]가 행동 조건 정보를 추가하며, KARMA [Wang et al., 2024]가 이를 기억 시스템으로 확장했습니다 (<a href="ch07.html">Chapter 7</a>). 그러나 "코드를 읽듯 세계를 읽는" 수준까지는 먼 거리입니다.</p>
+<p><strong>해결 방향</strong>: 씬 그래프의 표준화와 실시간 업데이트. MoMa-LLM [2024]의 동적 씬 그래프가 초기 시도입니다.</p>
+<h3>차원 4: Memory Architecture — 무엇을 기억하고 어떻게 꺼내는가 [★★★☆☆]</h3>
+<p>코드 에이전트는 200K+ 토큰의 컨텍스트 윈도우에 전체 코드베이스를 참조할 수 있고, 파일은 영구 보존됩니다. 시간 제약이 없습니다.</p>
+<p>로봇은 실시간(10-100Hz) 제어 루프 안에서 메모리를 조회해야 합니다. KARMA의 LTM/STM 분리가 이 제약에 대한 가장 효과적인 응답이며, Complex Tasks에서 62.7배의 효율 향상을 달성했습니다 (<a href="ch07.html">Chapter 7</a>). Embodied-RAG [Xie et al., 2024]는 공간-의미 계층으로 검색을 구조화했습니다.</p>
+<p><strong>이 차원은 가장 빠르게 발전 중입니다.</strong> 메모리 아키텍처는 실용적 경로가 이미 보이며, 간극 해소 가능성이 높습니다.</p>
+<h3>차원 5: Action Space — 무엇을 할 수 있는가 [★★★★☆]</h3>
+<p>코드 에이전트의 행동은 이산적, 조합적, 확장 가능합니다. "파일 열기"의 시작과 끝이 명확합니다.</p>
+<p>로봇의 행동은 연속적이고, 시간에 걸쳐 전개되며, 접촉 역학이 핵심입니다. RT-H [Belkhale et al., 2024]의 language motion, HAMSTER [Li et al., 2025]의 2D 경로, Hi Robot [Shi et al., 2025]의 원자적 명령이 이산-연속 간극을 계층적으로 연결합니다 (<a href="ch05.html">Chapter 5</a>). Code-as-Symbolic-Planner [Chen et al., 2025]는 코드를 중간 표현으로 사용하여 이산적 장점을 로봇에 이식하려 합니다 (<a href="ch03.html">Chapter 3</a>).</p>
+<p><strong>해결 방향</strong>: 계층적 추상화가 핵심. GR00T N1 [NVIDIA, 2025]의 Dual-System이 아키텍처 수준의 해답을 제시합니다.</p>
+<h3>차원 6: Verification & Testing — 어떻게 검증하는가 [★★★★★]</h3>
+<p>코드는 단위 테스트를 수밀리초 내에 수천 개 실행합니다. "로봇 단위 테스트"는 존재하지 않습니다.</p>
+<p>SIMPLER [Li et al., 2024]가 시뮬레이션 기반 평가의 표준을 제시했지만, sim2real gap이 항상 남습니다 (<a href="ch09.html">Chapter 9</a>). CaP-X [Fu et al., 2026]가 에이전틱 코딩 메트릭을 로봇에 최초 적용했지만 초기 단계입니다. AutoRT [Brohan et al., 2024]가 fleet-scale 검증으로 처리량을 높였지만 Google 규모 인프라가 필요합니다.</p>
+<p><strong>이 간극은 원리적으로 해소 불가능합니다.</strong> 시뮬레이션이 아무리 정밀해져도 접촉 역학의 완벽한 시뮬레이션은 물리학의 근사 한계로 달성할 수 없습니다. 해결 방향은 "완벽한 시뮬레이션"이 아닌 <strong>계층적 검증</strong> — 고수준은 씬 그래프로, 중수준은 코드로, 저수준은 시뮬레이션으로, 최종은 물리 실험으로 — 입니다.</p>
+<h3>차원 7: Recoverability — 실패에서 어떻게 복구하는가 [★★★★★]</h3>
+<p><code>git revert</code> 한 번이면 어떤 변경도 되돌릴 수 있습니다. 깨진 컵은 되돌릴 수 없습니다.</p>
+<p>AutoRT의 Robot Constitution이 위험한 행동을 사전 차단하고, PragmaBot [2025]이 보수적 전략으로 실패 확률을 줄이며, BUMBLE [Shah et al., 2024]이 실패 감지 시 재계획합니다 (<a href="ch08.html">Chapter 8</a>). 그러나 이미 수행된 물리적 행동은 복구 불가합니다.</p>
+<p><strong>이 간극은 원리적으로 해소 불가능합니다.</strong> 열역학 제2법칙이 부과하는 제약입니다. 해결 방향은 "복구" 대신 <strong>"예방"과 "우아한 실패(graceful degradation)"</strong>입니다.</p>
+</section>
+<section id="sec-10-3" class="content-section">
+<h2>10.3 세 가지 등급의 간극</h2>
+<p>7대 차원을 종합하면 세 등급으로 분류됩니다:</p>
+<p><strong>해소 불가능 간극 (적응 필요)</strong>: Error Feedback, Verification, Recoverability. 물리 세계의 본질적 속성에서 비롯. "극복"이 아닌 "적응" 전략이 필요합니다.</p>
+<p><strong>구조적 간극 (새로운 접근으로 해결 가능)</strong>: Execution Determinism, State Representation, Action Space. 현재 방법론의 한계이며, 확률적 정책, 씬 그래프, 계층적 추상화가 해결 경로를 제시합니다.</p>
+<p><strong>실용적 간극 (엔지니어링 노력으로 해결 가능)</strong>: Memory Architecture. 시간과 자원의 문제이며, KARMA/Embodied-RAG가 이미 실용적 경로를 보였습니다.</p>
+<p>이 분류는 연구 자원 배분에 중요한 함의를 갖습니다. 해소 불가능 간극에 "완전 해소"를 목표로 투자하는 것은 비효율적입니다. 대신, 적응 전략 — safety-first design, graceful degradation, hierarchical verification — 에 집중해야 합니다.</p>
+</section>
+<section id="sec-10-4" class="content-section">
+<h2>10.4 Agentic Coding의 성공 요인을 Robotics에 이식하기</h2>
+<p>Agentic Coding이 작동하는 네 가지 핵심 요인과 로봇으로의 이식 상태를 종합하면:</p>
+<table class="styled-table">
+<thead><tr>
+<th>성공 요인</th>
+<th>Coding에서</th>
+<th>Robotics 이식 시도</th>
+<th>이식 성숙도</th>
+</tr></thead><tbody>
+<tr>
+<td>빠르고 정확한 피드백</td>
+<td>스택 트레이스, 테스트</td>
+<td>VLM 실패 진단 (REFLECT)</td>
+<td>초기 (69-79% 정확도)</td>
+</tr>
+<tr>
+<td>저비용 실험</td>
+<td>사실상 무료</td>
+<td>시뮬레이션 (SIMPLER)</td>
+<td>중기 (sim2real gap)</td>
+</tr>
+<tr>
+<td>쉬운 복구</td>
+<td>git revert</td>
+<td>Safety-first (AutoRT Constitution)</td>
+<td>초기 (예방만 가능)</td>
+</tr>
+<tr>
+<td>구조화된 상태</td>
+<td>파일 시스템, AST</td>
+<td>3D 씬 그래프 (SayPlan, KARMA)</td>
+<td>중기 (동적 환경 과제)</td>
+</tr>
+</tbody></table>
+<p>네 번째 요인(구조화된 상태)이 가장 빠르게 성숙하고 있으며, 첫 번째 요인(피드백의 질)이 가장 큰 병목입니다. 이 네 가지 이식의 동시 진전이 Agentic Robotics의 성숙도를 결정합니다.</p>
+</section>
+<section id="sec-10-5" class="content-section">
+<h2>10.5 8대 미해결 문제</h2>
+<p>이 책 전체에서 식별된 미해결 문제를 종합합니다:</p>
+<h3>[근본적] 물리적 피드백의 의미 변환</h3>
+<p>센서 데이터를 LLM이 이해할 수 있는 구조적 피드백으로 변환하는 것. 가장 시급하고 가장 어려운 과제. Counterfactual reasoning, failure RAG, 촉각 피드백 통합이 유망한 방향입니다.</p>
+<h3>[근본적] Safety와 Autonomy의 균형</h3>
+<p>자율적 행동을 허용하면서 안전을 보장하는 딜레마. AutoRT의 Robot Constitution은 시작이지만 long-tail 위험에 취약합니다. 계층적 안전 아키텍처 — 하드웨어 반사적 안전 + 소프트웨어 추론적 안전 — 가 필요합니다.</p>
+<h3>[구조적] 실시간 세계 모델</h3>
+<p>행동 전에 결과를 예측하는 내부 모델. VLA는 현재 반응적(reactive)이며 미래 예측이 없습니다. GR00T N1의 dual-system이 시작이지만, 물리 예측의 정확도와 속도 모두 부족합니다.</p>
+<h3>[구조적] Cross-Embodiment 일반화</h3>
+<p>하나의 모델이 다양한 로봇 하드웨어에서 작동하는 것. Open X-Embodiment, Octo, OpenVLA가 기반을 구축했지만, 진정한 cross-embodiment 일반화는 미달성입니다.</p>
+<h3>[구조적] Long-Horizon 누적 에러</h3>
+<p>20단계 작업에서 95%/단계 = 36% 전체 성공률. BUMBLE의 47.1%가 현실입니다. 중간 검증 포인트와 적응적 재계획이 해결 방향입니다.</p>
+<h3>[실용적] 데이터 효율성</h3>
+<p>웹 데이터는 수조 토큰, 로봇 데이터는 100만 에피소드. DROID, 시뮬레이션 데이터, 인간 비디오 활용이 진행 중이지만 격차는 여전합니다.</p>
+<h3>[실용적] 실시간 추론</h3>
+<p>VLA 모델(수십억 파라미터) vs 로봇 제어 주기(100Hz+). TinyVLA, FAST, 계층적 분리(HAMSTER, GR00T N1)가 해결 경로. 하드웨어 발전과 함께 가장 빠르게 해결될 문제입니다.</p>
+<h3>[실용적] 평가 표준</h3>
+<p>SWE-bench에 대응하는 Agentic Robotics 벤치마크의 부재. CaP-X가 시작이지만, 표준화된 프로토콜이 필요합니다. 이 표준의 확립이 분야 전체의 발전을 가속할 것입니다.</p>
+</section>
+<section id="sec-10-6" class="content-section">
+<h2>10.6 시간축 전망: 다음 전환은 무엇인가</h2>
+<p>이 책이 추적한 네 번의 패러다임 전환에 이어, 다섯 번째 전환이 예고됩니다:</p>
+<table class="styled-table">
+<thead><tr>
+<th>전환</th>
+<th>시기</th>
+<th>핵심 성취</th>
+<th>패러다임 지연</th>
+</tr></thead><tbody>
+<tr>
+<td>1. LLM External Planner</td>
+<td>2022</td>
+<td>LLM의 로봇 계획 활용</td>
+<td>동시</td>
+</tr>
+<tr>
+<td>2. Multimodal VLA</td>
+<td>2023</td>
+<td>End-to-end VLA</td>
+<td>동시</td>
+</tr>
+<tr>
+<td>3. Open VLA Ecosystem</td>
+<td>2024</td>
+<td>VLA 민주화</td>
+<td>~1년</td>
+</tr>
+<tr>
+<td>4. Agentic Closed-Loop</td>
+<td>2025</td>
+<td>폐루프 에이전틱 시스템</td>
+<td>~2년</td>
+</tr>
+<tr>
+<td><strong>5. Embodied World Models</strong></td>
+<td><strong>2026-27</strong></td>
+<td><strong>미래를 예측하는 로봇</strong></td>
+<td><strong>?</strong></td>
+</tr>
+</tbody></table>
+<p>다섯 번째 전환 — <strong>Embodied World Models</strong> — 의 징후는 이미 보입니다. GR00T N1의 dual-system, Code-as-Symbolic-Planner의 symbolic reasoning, video prediction 모델의 발전이 수렴하고 있습니다. "행동 전에 결과를 시뮬레이션"하는 능력은 Agentic Coding에서 이미 존재합니다 — type checking, static analysis, 테스트가 "실행 전 결과 예측"입니다. 로봇에도 같은 능력이 필요합니다.</p>
+<p>이 전환이 실현되려면 세 가지 조건이 충족되어야 합니다: (1) 실시간 물리 예측 모델 (현재 수초 → 수밀리초), (2) 예측의 불확실성을 정량화하고 의사결정에 반영, (3) 예측 실패 시 보수적 행동으로의 graceful fallback.</p>
+<h3>하이브리드 아키텍처의 부상</h3>
+<p>이 책 전체를 관통하는 긴장 — <strong>Large Model(VLA: 빠르지만 실패) vs System-Level Orchestration(느리지만 강건)</strong> — 의 해결책은 둘 중 하나의 선택이 아닌 하이브리드입니다. 두 가지 유망한 방향이 있습니다.</p>
+<p>첫째, <strong>고전적 TAMP + VLM 추론의 결합</strong>입니다. 기본 모션은 VLA가 빠르게 실행하되, 프레임 레벨의 진행 상태를 모니터링하다가 예상과 벗어나면 VLM이 개입하여 재계획합니다. AutoTAMP의 STL 기반 검증(<a href="ch05.html">Chapter 5</a>)과 pi0의 실시간 제어(<a href="ch04.html">Chapter 4</a>)를 결합하는 것입니다.</p>
+<p>둘째, <strong>Orchestration→Distillation</strong>입니다. 시스템 레벨 오케스트레이션에서 축적된 경험(성공/실패 궤적, 재계획 패턴)을 VLA에 증류하여, 점진적으로 VLA가 오케스트레이터의 판단력을 내재화하게 합니다. 이것은 Agentic Coding에서 LLM이 린터와 타입 체커의 패턴을 학습하여 점차 깨끗한 코드를 생성하게 되는 것과 유사합니다.</p>
+<h3>저수준 시간적 제약: 남은 미개척 영역</h3>
+<p>현재 Agentic Robotics의 대부분 연구는 quasi-static manipulation — 천천히, 안정적으로 물체를 잡고 옮기는 — 에 집중합니다. 그러나 실제 산업 현장과 일상에는 <strong>동적 조작</strong>(던지기, 받기, 빠른 조립)이 필요합니다. 이 영역에서는 에이전틱 루프의 "관찰→계획→실행" 주기가 물리적 시간 제약에 걸립니다 — 날아오는 공을 잡으려면 200ms 안에 반응해야 하며, 이는 현재 VLM의 추론 시간보다 짧습니다. 이 저수준 시간적 제약(low-level temporal constraints)의 해결이 Agentic Robotics의 다음 프론티어입니다.</p>
+</section>
+<section id="sec-10-7" class="content-section">
+<h2>10.7 Agentic Coding과의 대비: 최종 종합</h2>
+<p>이 책이 Agentic Coding을 일관된 비교 축으로 사용한 이유를 최종 정리합니다.</p>
+<p>Agentic Coding은 에이전틱 루프가 <strong>이미 작동하는 세계</strong>입니다. 이 성공은 디지털 세계의 세 가지 속성 — 결정론적 실행, 즉각적 피드백, 완전한 가역성 — 에 기반합니다. Agentic Robotics는 이 세 속성이 모두 무너지는 세계에서 같은 루프를 작동시키려 합니다.</p>
+<p>그러나 이 책의 논문들이 보여주는 것은, 물리 세계에서도 에이전틱 루프가 <strong>작동한다</strong>는 것입니다. PragmaBot은 35%에서 84%로, CaP-X는 에이전틱 스캐폴딩으로 human-crafted abstraction의 부재를 보상합니다. KARMA는 기억만으로 62.7배의 효율 향상을 달성합니다. 루프의 각 구성요소가 유의미한 기여를 합니다.</p>
+<p>Agentic Robotics가 Agentic Coding의 성숙도에 도달하는 것은 시간의 문제가 아니라, <strong>적응의 문제</strong>입니다. 물리 세계의 근본 제약은 해소되지 않지만, 그 안에서 충분히 효과적인 시스템을 구축하는 것은 가능합니다. Safety-first design, hierarchical verification, graceful degradation, 그리고 simulation-augmented experience — 이 네 기둥 위에 Agentic Robotics의 미래가 서 있습니다.</p>
+</section>
+<section id="sec-10-8" class="content-section">
+<h2>10.8 결론: 물리 세계를 위한 새로운 공학</h2>
+<p>이 책이 그린 지도의 핵심 메시지는 세 가지입니다.</p>
+<p><strong>첫째, 에이전틱 루프는 보편적입니다.</strong> 디지털이든 물리적이든, 관찰-계획-실행-검증-반성-기억의 루프가 자율적 시스템의 핵심 구조입니다. 이 보편성이 Agentic Coding의 교훈을 Robotics에 적용할 수 있는 근거입니다.</p>
+<p><strong>둘째, 물리 세계는 고유한 제약을 부과합니다.</strong> 7대 차원 중 3개(Error Feedback, Verification, Recoverability)는 원리적으로 해소 불가능합니다. 이 제약을 무시하고 디지털 세계의 전략을 그대로 적용하면 실패합니다.</p>
+<p><strong>셋째, 적응은 가능합니다.</strong> 2022년의 개루프 LLM Planner에서 2025년의 완전 폐루프 PragmaBot까지, 4년 만에 물리 에이전틱 루프의 모든 구성요소가 구현되었습니다. 성숙도는 아직 연구 프로토타입 수준이지만, 방향은 명확합니다.</p>
+<p>LLM 플래너에서 VLA로, VLA에서 에이전틱 로보틱스로 — 이 여정은 "디지털 지능을 물리 세계로 확장하는" 인류 공학의 가장 근본적인 도전 중 하나입니다. 이 책이 그 도전의 현재 지도로서 연구자와 엔지니어에게 유용한 나침반이 되기를 바랍니다.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch09.html" class="prev">&larr; Ch.9</a>
+        <a href="./" class="toc-link">목록</a>
+        <span class="placeholder"></span>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>참고문헌</h2>
+<ol class="references-list">
+  <li id="ch10-ref-1" value="1">Chi, C. et al., "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion," arXiv:2303.04137, 2023.</li>
+  <li id="ch10-ref-2" value="2">Liu, Z. et al., "REFLECT: Summarizing Robot Experiences for Failure Explanation and Correction," arXiv:2306.15724, 2023.</li>
+  <li id="ch10-ref-3" value="3">Ekpo, D. et al., "VeriGraph: Scene Graphs for Execution Verifiable Robot Planning," arXiv:2411.10446, 2024.</li>
+  <li id="ch10-ref-4" value="4">Khazatsky, A. et al., "DROID: A Large-Scale In-The-Wild Robot Manipulation Dataset," arXiv:2403.12945, 2024.</li>
+  <li id="ch10-ref-5" value="5">Rana, K. et al., "SayPlan: Grounding Large Language Models using 3D Scene Graphs," arXiv:2307.06135, 2023.</li>
+  <li id="ch10-ref-6" value="6">Jiang, H. et al., "RoboEXP: Action-Conditioned Scene Graph via Interactive Exploration," arXiv:2402.15487, 2024.</li>
+  <li id="ch10-ref-7" value="7">Wang, Z. et al., "KARMA: Augmenting Embodied AI Agents with Long-and-short Term Memory Systems," arXiv:2409.14908, 2024.</li>
+  <li id="ch10-ref-8" value="8">Xie, Q. et al., "Embodied-RAG: General Non-parametric Embodied Memory for Retrieval and Generation," arXiv:2409.18313, 2024.</li>
+  <li id="ch10-ref-9" value="9">Belkhale, S. et al., "RT-H: Action Hierarchies Using Language," arXiv:2403.01823, 2024.</li>
+  <li id="ch10-ref-10" value="10">Li, J. et al., "HAMSTER: Hierarchical Action Models for Open-World Robot Manipulation," arXiv:2502.05485, 2025.</li>
+  <li id="ch10-ref-11" value="11">Shi, L. X. et al., "Hi Robot: Open-Ended Instruction Following with Hierarchical VLA," arXiv:2502.19417, 2025.</li>
+  <li id="ch10-ref-12" value="12">Chen, Y. et al., "Code-as-Symbolic-Planner: Leveraging Code Generation for TAMP," arXiv:2503.01700, 2025.</li>
+  <li id="ch10-ref-13" value="13">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch10-ref-14" value="14">Li, X. et al., "Evaluating Real-World Robot Manipulation Policies in Simulation (SIMPLER)," arXiv:2405.05941, 2024.</li>
+  <li id="ch10-ref-15" value="15">Fu, M. et al., "CaP-X: Benchmarking Coding Agents for Robot Manipulation," arXiv:2603.22435, 2026.</li>
+  <li id="ch10-ref-16" value="16">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch10-ref-17" value="17">Shah, M. et al., "BUMBLE: Unifying Reasoning and Acting with VLMs for Building-wide Mobile Manipulation," arXiv:2410.06237, 2024.</li>
+  <li id="ch10-ref-18" value="18">PragmaBot, "Learning to Plan and Act by Experiencing in the Real World," arXiv:2507.16713, 2025.</li>
+  <li id="ch10-ref-19" value="19">Kim, M. J. et al., "OpenVLA: An Open-Source Vision-Language-Action Model," arXiv:2406.09246, 2024.</li>
+  <li id="ch10-ref-20" value="20">Black, K. et al., "π0: A Vision-Language-Action Flow Model for General Robot Control," arXiv:2410.24164, 2024.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch09.html" class="prev">&larr; Ch.9</a>
+        <a href="./" class="toc-link">목록</a>
+        <span class="placeholder"></span>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

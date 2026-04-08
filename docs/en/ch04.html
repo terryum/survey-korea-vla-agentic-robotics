@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 4: The Rise of Vision-Language-Action Models</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-2">
+  <nav class="sidebar-nav part-2">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-1">
+      <span class="dot"></span>
+      <span class="label">4.1 Introduction: When Code Needs L...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-2">
+      <span class="dot"></span>
+      <span class="label">4.2 PaLM-E: The Promise of Giant Mu...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-3">
+      <span class="dot"></span>
+      <span class="label">4.3 RT-2: Establishing the VLA Para...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-4">
+      <span class="dot"></span>
+      <span class="label">4.4 The Explosion of the Open-Sourc...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-5">
+      <span class="dot"></span>
+      <span class="label">4.5 The Action Representation Revol...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-6">
+      <span class="dot"></span>
+      <span class="label">4.6 GR00T N1: The Dual-System VLA</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-7">
+      <span class="dot"></span>
+      <span class="label">4.7 The Five Design Axes of VLA</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-8">
+      <span class="dot"></span>
+      <span class="label">4.8 Comparison with Agentic Coding:...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-4-9">
+      <span class="dot"></span>
+      <span class="label">4.9 Open Problems and Outlook</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part II: The VLA Revolution</span>
+        <h1>Chapter 4: The Rise of Vision-Language-Action Models</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>From the perspective of Agentic Robotics, VLA models are not merely an "end-to-end alternative." When Code as Policy generates a high-level command like <code>pick(cup)</code>, who actually executes the low-level motor commands that move the robot arm? VLA is positioning itself as precisely this <strong>skill executor</strong> — the low-level motion primitive that agentic system code calls upon. This chapter traces the emergence and evolution of VLA, analyzing its role within the Agentic Robotics framework.</p>
+</section>
+<section id="sec-4-1" class="content-section">
+<h2>4.1 Introduction: When Code Needs Low-Level APIs</h2>
+<p>The LLM Planners and Code as Policy approaches of Chapters 2-3 share a common assumption: <strong>executable low-level skills already exist.</strong> SayCan selects from 551 predefined skills; CaP calls APIs like <code>robot.pick()</code> and <code>robot.place()</code>. But the policy that actually moves the motors behind these APIs must be supplied separately.</p>
+<p>This parallels how in agentic coding, when an LLM calls <code>requests.get(url)</code>, the HTTP library handles actual network communication. The difference is that network libraries are deterministic, while robot low-level motion is stochastic and environment-dependent. VLA is the attempt to make this "low-level execution layer" general-purpose.</p>
+<p>Meanwhile, the structural limitations of modular pipelines also catalyzed VLA. When the LLM plans, a separate perception module recognizes the environment, and yet another module handles low-level control, information is lost at each module boundary. "What if a single model handled everything?" — the VLA paradigm was born from this question.</p>
+</section>
+<section id="sec-4-2" class="content-section">
+<h2>4.2 PaLM-E: The Promise of Giant Multimodal Models</h2>
+<p>PaLM-E [Driess et al., 2023] is a 562B-parameter embodied multimodal language model that integrates images, robot states, and text as multimodal tokens into PaLM 540B.</p>
+<p>PaLM-E's key finding was <strong>positive transfer</strong>: jointly training across diverse domains (internet images, robot data) improved performance on each domain. As scale increased, embodied capabilities improved while language abilities were preserved. It achieved state-of-the-art on OK-VQA while also performing robot manipulation planning.</p>
+<p>However, PaLM-E was an "embodied LM," not a VLA — it generated text-format plans rather than directly outputting actions. At 562B, real-time robot control was impractical. PaLM-E's true contribution was demonstrating that web knowledge can transfer to robot capabilities, directly laying the groundwork for RT-2.</p>
+</section>
+<section id="sec-4-3" class="content-section">
+<h2>4.3 RT-2: Establishing the VLA Paradigm</h2>
+<p>RT-2 [Brohan et al., 2023] is the paper that effectively established the VLA concept. The core idea is simple yet powerful: include robot actions in the VLM's output token space.</p>
+<p>RT-2 co-fine-tunes PaLI-X (55B) or PaLM-E (12B) on robot trajectory data and internet VL data. Robot actions are encoded as text tokens — for example, <code>"1 128 91 241 5 101 127"</code> representing end-effector position and gripper state. Natural language responses and robot actions are learned in the same token space.</p>
+<p>Across 6,000 evaluation trials, RT-2's most impressive results were its <strong>emergent capabilities</strong>:</p>
+<ul>
+<li><strong>Novel Object Generalization</strong>: meaningful generalization to objects absent from training data</li>
+<li><strong>Semantic Reasoning</strong>: "pick up an object that could be used as an improvised hammer" — selects a rock</li>
+<li><strong>Chain-of-Thought</strong>: multi-step reasoning like "select a drink suitable for a tired person"</li>
+</ul>
+<p>This was fundamental evidence that visual-language knowledge learned from the web transfers directly to robot control.</p>
+<p>RT-2's limitations — 55B model latency, simple binning-based action tokenization limiting precision, and restricted data diversity — each determined subsequent research directions.</p>
+</section>
+<section id="sec-4-4" class="content-section">
+<h2>4.4 The Explosion of the Open-Source VLA Ecosystem</h2>
+<p>In 2024, VLAs were democratized. This transition directly parallels the GPT-4 (closed) to Llama (open-source) shift in the LLM world.</p>
+<h3>Open X-Embodiment: Building the Data Hub</h3>
+<p>The Open X-Embodiment Collaboration [2023] released the largest cross-embodiment dataset to date: 22 robot embodiments, 527 skills, and over 1 million trajectories, contributed by 21 institutions and 150+ researchers. RT-1-X (35M) and RT-2-X (55B) were trained on this data, demonstrating <strong>positive transfer</strong> at scale — data from other robots improves each robot's performance.</p>
+<h3>Octo: The Open-Source Baseline</h3>
+<p>Octo [Ghosh et al., 2024] is an open-source generalist policy trained on 800K trajectories from Open X-Embodiment. Combining a Transformer-based diffusion policy architecture with readout tokens and action chunking, it works out-of-the-box on 9 robot platforms and achieves 55% success rate on WidowX after fine-tuning.</p>
+<h3>OpenVLA: The 7B Breakthrough</h3>
+<p>OpenVLA [Kim et al., 2024] is a turning point. Combining Llama 2 (7B) + DINOv2 + SigLIP and trained on 970K real robot demos, it achieves +16.5% success rate over RT-2-X (55B) with 1/8 the parameters. LoRA fine-tuning enables adaptation on consumer GPUs, and MIT licensing has driven widespread community adoption.</p>
+<h3>TinyVLA: Extreme Compression</h3>
+<p>TinyVLA [2024] combines a sub-1B VLM with a diffusion head to achieve +25.7% success over OpenVLA demonstrating robustness across language, object, position, appearance, background, and environment generalization dimensions.</p>
+</section>
+<section id="sec-4-5" class="content-section">
+<h2>4.5 The Action Representation Revolution: Flow Matching and FAST</h2>
+<p>RT-2's action tokenization — discretizing continuous actions into token bins — is training-efficient but precision-limited. Two directions emerged to address this.</p>
+<h3>pi0: Flow Matching VLA</h3>
+<p>pi0 [Black et al., 2024] from Physical Intelligence builds a flow matching architecture on top of a pretrained VLM, generating continuous, precise actions rather than discrete tokens. Pretrained on 7 robot configurations and 68 tasks, it achieves up to 50Hz real-time control.</p>
+<p>pi0's most impressive results are in dexterous manipulation: shirt folding, table clearing, grocery packing, and toast retrieval consistently outperform OpenVLA and Octo.</p>
+<h3>pi0.5: Extending to the Open World</h3>
+<p>pi0.5 [Physical Intelligence, 2025] extends pi0 to perform long-horizon tasks like kitchen and bedroom cleaning <strong>in completely new homes absent from training data</strong> — the first end-to-end learned robot system to achieve open-world generalization, combining heterogeneous co-training with subtask prediction.</p>
+<h3>FAST: Revolutionizing Action Tokenization</h3>
+<p>FAST [2025] replaces RT-2's simple binning with DCT-based action tokenization, enabling high-frequency precise control. Combined with pi0, it scales to 10,000 hours of robot data while matching diffusion VLAs and reducing training time by up to 5x.</p>
+</section>
+<section id="sec-4-6" class="content-section">
+<h2>4.6 GR00T N1: The Dual-System VLA</h2>
+<p>GR00T N1 [NVIDIA, 2025] is a key milestone showing the direction of VLA evolution. It explicitly implements a <strong>Dual-System Architecture</strong>:</p>
+<ul>
+<li><strong>System 2 (VLM)</strong>: Slow reasoning for environment interpretation and language instruction understanding</li>
+<li><strong>System 1 (Diffusion Transformer)</strong>: Fast action for real-time motor behavior generation</li>
+</ul>
+<p>The two modules are jointly trained end-to-end. GR00T-N1-2B openly releases model checkpoints, training data, and benchmarks. The Dual-System provides a structural answer to the scale-vs-speed tradeoff across all VLAs discussed in this chapter (see Chapter 5 for detailed analysis of hierarchical approaches).</p>
+</section>
+<section id="sec-4-7" class="content-section">
+<h2>4.7 The Five Design Axes of VLA</h2>
+<p>Five key design axes run through 2024-2025 VLA research:</p>
+<table class="styled-table">
+<thead><tr>
+<th>Design Axis</th>
+<th>Options</th>
+<th>Representative Models</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Action representation</strong></td>
+<td>Discrete token / Flow matching / Diffusion</td>
+<td>RT-2 / pi0 / Octo</td>
+</tr>
+<tr>
+<td><strong>Model size</strong></td>
+<td>55B / 7B / <1B</td>
+<td>RT-2-X / OpenVLA / TinyVLA</td>
+</tr>
+<tr>
+<td><strong>Pretraining data</strong></td>
+<td>Web+robot / Robot only / Simulation</td>
+<td>RT-2 / Octo / GR00T N1</td>
+</tr>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>Monolithic / Hierarchical / Dual-system</td>
+<td>RT-2 / HAMSTER / GR00T N1</td>
+</tr>
+<tr>
+<td><strong>Open-source</strong></td>
+<td>Closed / Open</td>
+<td>RT-2, pi0 / OpenVLA, Octo, GR00T N1</td>
+</tr>
+</tbody></table>
+</section>
+<section id="sec-4-8" class="content-section">
+<h2>4.8 Comparison with Agentic Coding: Where Does VLA Fit in the Agentic Framework?</h2>
+<p>The key question of this chapter is not "Does VLA replace modular systems?" but rather <strong>"What role does VLA play in Agentic Robotics?"</strong></p>
+<p>The distinction is clear: <strong>Large Models (VLA) are fast but fail; System-Level Orchestration is slow but robust.</strong> VLA alone suffers from cascading errors in long-horizon tasks (BUMBLE at 47.1%), but when combined with agentic orchestration, it can reliably execute individual subtasks. GR00T N1's Dual-System provides the structural answer — System 2 (VLM) plans, System 1 (VLA) executes.</p>
+<p>The asymmetry with Agentic Coding also makes sense in this context. In Agentic Coding, the LLM generates code, and the Python runtime executes it. The intermediate representation (code) is <strong>interpretable</strong>. In Agentic Robotics, the orchestrator (LLM/VLM) plans, and VLA executes. But VLA's intermediate representations are <strong>opaque neural activations</strong>. Code as Policy (<a href="ch03.html">Chapter 3</a>) attempts to bridge this gap, and as CaP-X demonstrated, agentic scaffolding (test-time computation) can compensate for this opacity.</p>
+<p>This matters for three reasons. First, <strong>debugging difficulty</strong> — when a code agent produces wrong output, you can read the generated code; when a VLA produces wrong actions, interpreting internal representations is nearly impossible. Second, <strong>the basis of generalization</strong> — code naturally inhabits the same token space as natural language, but robot actions require artificial tokenization. Third, <strong>data asymmetry</strong> — LLMs train on trillions of tokens; the largest robot dataset (Open X-Embodiment) has just over 1 million trajectories.</p>
+</section>
+<section id="sec-4-9" class="content-section">
+<h2>4.9 Open Problems and Outlook</h2>
+<p>Five fundamental limitations face the VLA paradigm: the unresolved action tokenization-vs-continuous debate, the scale-vs-speed tradeoff, the data bottleneck (collecting robot data costs orders of magnitude more than scraping web text), the still-limited scope of open-world generalization, and the absence of safety mechanisms for models that directly output actions.</p>
+<p><strong>The Hybrid Future</strong>: The ultimate direction is neither standalone VLA nor pure modular systems, but a hybrid. Combining classical TAMP with VLM reasoning (where VLM intervenes triggered by frame-level progress monitoring), and distilling System-Level Orchestration knowledge into VLA to achieve both speed and robustness, are promising approaches. This mirrors how in Agentic Coding, the LLM generates code while type checkers and linters provide real-time correction — fast generation (VLA) combined with rigorous verification (TAMP/orchestration).</p>
+<p>These limitations drive the research directions explored in Chapters 5 (hierarchical planning), 8 (safety via Robot Constitution), and 9 (sim-to-real for data augmentation).</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch03.html" class="prev">&larr; Ch.3</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch05.html" class="next">Ch.5 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch4-ref-1" value="1">Driess, D. et al., "PaLM-E: An Embodied Multimodal Language Model," arXiv:2303.03378, 2023.</li>
+  <li id="ch4-ref-2" value="2">Brohan, A. et al., "RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control," arXiv:2307.15818, 2023.</li>
+  <li id="ch4-ref-3" value="3">Open X-Embodiment Collaboration, "Open X-Embodiment: Robotic Learning Datasets and RT-X Models," arXiv:2310.08864, 2023.</li>
+  <li id="ch4-ref-4" value="4">Ghosh, D. et al., "Octo: An Open-Source Generalist Robot Policy," arXiv:2405.12213, 2024.</li>
+  <li id="ch4-ref-5" value="5">Kim, M. J. et al., "OpenVLA: An Open-Source Vision-Language-Action Model," arXiv:2406.09246, 2024.</li>
+  <li id="ch4-ref-6" value="6">Black, K. et al., "π0: A Vision-Language-Action Flow Model for General Robot Control," arXiv:2410.24164, 2024.</li>
+  <li id="ch4-ref-7" value="7">Physical Intelligence, "π0.5: A Vision-Language-Action Model with Open-World Generalization," arXiv:2504.16054, 2025.</li>
+  <li id="ch4-ref-8" value="8">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch4-ref-9" value="9">FAST, "Efficient Action Tokenization for Vision-Language-Action Models," arXiv:2501.09747, 2025.</li>
+  <li id="ch4-ref-10" value="10">TinyVLA, "TinyVLA: Towards Fast and Data-Efficient Vision-Language-Action Models," arXiv:2409.12514, 2024.</li>
+  <li id="ch4-ref-11" value="11">Chi, C. et al., "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion," arXiv:2303.04137, 2023.</li>
+  <li id="ch4-ref-12" value="12">Khazatsky, A. et al., "DROID: A Large-Scale In-The-Wild Robot Manipulation Dataset," arXiv:2403.12945, 2024.</li>
+  <li id="ch4-ref-13" value="13">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch4-ref-14" value="14">"What Matters in Building Vision-Language-Action Models," arXiv:2412.14058, 2024.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch03.html" class="prev">&larr; Ch.3</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch05.html" class="next">Ch.5 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

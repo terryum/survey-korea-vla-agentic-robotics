@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 10: Agentic Coding vs Agentic Robotics — The Gap and the Future</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-4">
+  <nav class="sidebar-nav part-4">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-1">
+      <span class="dot"></span>
+      <span class="label">10.1 Introduction: Same Loop, Funda...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-2">
+      <span class="dot"></span>
+      <span class="label">10.2 Seven-Dimension Synthesis</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-3">
+      <span class="dot"></span>
+      <span class="label">10.3 Three Tiers of Gap</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-4">
+      <span class="dot"></span>
+      <span class="label">10.4 Transplanting Agentic Coding's...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-5">
+      <span class="dot"></span>
+      <span class="label">10.5 Eight Open Problems</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-6">
+      <span class="dot"></span>
+      <span class="label">10.6 Timeline Outlook: What Comes N...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-7">
+      <span class="dot"></span>
+      <span class="label">10.7 Comparison with Agentic Coding...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-10-8">
+      <span class="dot"></span>
+      <span class="label">10.8 Conclusion: A New Engineering ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part IV: Fundamental Differences</span>
+        <h1>Chapter 10: Agentic Coding vs Agentic Robotics — The Gap and the Future</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>This book has traced the research trajectory from LLM Planners (2022) through Agentic Robotics (2026), maintaining Agentic Coding as a consistent comparison axis. This final chapter synthesizes the seven-dimension gap analysis, distinguishes what can be closed from what is irreducible in principle, and charts the path for physical agents to approach the maturity of digital agents.</p>
+</section>
+<section id="sec-10-1" class="content-section">
+<h2>10.1 Introduction: Same Loop, Fundamentally Different Worlds</h2>
+<p>The core observation running through this entire book is simple: <strong>the agentic loop's structure is identical, but the physical world fundamentally changes the difficulty of each step.</strong></p>
+<p>Observe, plan, execute, verify, reflect, remember, retry. Claude Code iterates this loop in seconds and has reached production readiness. PragmaBot runs the same loop structure in minutes, achieving 84% success (see Chapter 8). BUMBLE plateaus at 47.1% at building scale. Drawing the precise map of this gap is this chapter's goal.</p>
+</section>
+<section id="sec-10-2" class="content-section">
+<h2>10.2 Seven-Dimension Synthesis</h2>
+<h3>Dimension 1: Error Feedback — Quality and Speed of Feedback [5/5]</h3>
+<p>Code errors are structured text: "File X, Line Y, TypeError" — exact file, exact line, exact error type. The information channel bandwidth is effectively infinite.</p>
+<p>Physical errors are noisy multisensory data. When a gripper drops a cup, whether the cause is insufficient force, slippage, or position error is not immediately determinable. REFLECT [Liu et al., 2023] infers failure causes via VLM at 69-79% accuracy depending on task type (see Chapter 8). VeriGraph [Ekpo et al., 2024] structures feedback through scene graphs but still fails to capture fine-grained manipulation failures (see Chapter 7).</p>
+<p><strong>This gap is the most fundamental bottleneck.</strong> Feedback quality determines the efficiency of the entire agentic loop. Converting physical-world errors to "stack-trace-level" clarity is the central challenge of Agentic Robotics.</p>
+<h3>Dimension 2: Execution Determinism — Same Command, Different Results [4/5]</h3>
+<p>Same code and input guarantees same output. Docker isolates even the environment.</p>
+<p>Same pick-and-place command yields different results each time. Diffusion Policy [Chi et al., 2023] explicitly models stochastic policies, acknowledging this intrinsic uncertainty (see Chapter 6). DROID [Khazatsky et al., 2024] attempts to internalize environmental diversity through large-scale data from 13 institutions and 564 scenes, but deterministic reproducibility is unachievable in principle.</p>
+<p><strong>Direction</strong>: Design systems that are "stochastic but robust" rather than deterministic — systems that recover from failure rather than prevent it.</p>
+<h3>Dimension 3: State Representation — How the World Is Seen [4/5]</h3>
+<p>Codebases are fully observable. ASTs precisely represent semantic structure; the file system exposes all state.</p>
+<p>Physical environments are partially observable. Objects outside camera view, occluded objects, and internal states (contents of drawers) are unknown. SayPlan's 3D scene graphs [Rana et al., 2023], RoboEXP's action-conditioned graphs [Jiang et al., 2024], and KARMA's memory-extended graphs [Wang et al., 2024] have advanced structural representation (see Chapter 7), but "reading the world like reading code" remains distant.</p>
+<h3>Dimension 4: Memory Architecture — What to Remember and How to Retrieve [3/5]</h3>
+<p>Code agents can reference entire codebases in 200K+ token context windows; files persist indefinitely. No time constraints.</p>
+<p>Robots must query memory within real-time control loops (10-100Hz). KARMA's LTM/STM separation is the most effective response, achieving 62.7x efficiency improvement on Complex Tasks (see Chapter 7). Embodied-RAG [Xie et al., 2024] structures retrieval through spatial-semantic hierarchies.</p>
+<p><strong>This dimension is advancing fastest.</strong> Memory architectures have visible practical paths, with high likelihood of gap closure.</p>
+<h3>Dimension 5: Action Space — What Can Be Done [4/5]</h3>
+<p>Code agent actions are discrete, compositional, and extensible. "Open file" has a clear start and end.</p>
+<p>Robot actions are continuous, unfold over time, and are dominated by contact dynamics. RT-H's language motion [Belkhale et al., 2024], HAMSTER's 2D paths [Li et al., 2025], and Hi Robot's atomic commands [Shi et al., 2025] hierarchically bridge the discrete-continuous gap (see Chapter 5). Code-as-Symbolic-Planner [Chen et al., 2025] attempts to transplant code's discrete advantages into robotics (see Chapter 3).</p>
+<p><strong>Direction</strong>: Hierarchical abstraction is key. GR00T N1's [NVIDIA, 2025] Dual-System offers an architecture-level answer.</p>
+<h3>Dimension 6: Verification & Testing — How to Verify [5/5]</h3>
+<p>Code runs thousands of unit tests in milliseconds. The robot equivalent of a "unit test" does not exist.</p>
+<p>SIMPLER [Li et al., 2024] established simulation-based evaluation standards, but the sim2real gap persists (see Chapter 9). CaP-X [Fu et al., 2026] first applied agentic coding metrics to robots but remains early-stage. AutoRT [Brohan et al., 2024] increased throughput through fleet-scale testing but requires Google-scale infrastructure.</p>
+<p><strong>This gap is irreducible in principle.</strong> Contact dynamics cannot be perfectly simulated due to physics approximation limits. The direction is <strong>hierarchical verification</strong>: high-level via scene graphs, mid-level via code, low-level via simulation, final confirmation via physical experiment.</p>
+<h3>Dimension 7: Recoverability — How to Recover from Failure [5/5]</h3>
+<p><code>git revert</code> undoes any change. A broken cup cannot be undone.</p>
+<p>AutoRT's Robot Constitution preemptively blocks dangerous actions, PragmaBot [2025] reduces failure probability through conservative strategies, and BUMBLE [Shah et al., 2024] replans upon failure detection (see Chapter 8). But physical actions already taken cannot be reversed.</p>
+<p><strong>This gap is irreducible in principle.</strong> The second law of thermodynamics imposes this constraint. The direction is <strong>"prevention and graceful degradation"</strong> rather than recovery.</p>
+</section>
+<section id="sec-10-3" class="content-section">
+<h2>10.3 Three Tiers of Gap</h2>
+<p>Synthesizing the seven dimensions yields three tiers:</p>
+<p><strong>Irreducible gaps (adaptation required)</strong>: Error Feedback, Verification, Recoverability. Arising from essential properties of the physical world. "Adaptation" strategies, not "elimination," are needed.</p>
+<p><strong>Structural gaps (solvable with new approaches)</strong>: Execution Determinism, State Representation, Action Space. Limited by current methodology. Stochastic policies, scene graphs, and hierarchical abstraction chart the solution paths.</p>
+<p><strong>Practical gaps (solvable with engineering effort)</strong>: Memory Architecture. A matter of time and resources. KARMA/Embodied-RAG have already demonstrated practical paths.</p>
+<p>This classification carries important implications for research resource allocation. Investing in "complete elimination" of irreducible gaps is inefficient. Focus should instead be on adaptation strategies: safety-first design, graceful degradation, and hierarchical verification.</p>
+</section>
+<section id="sec-10-4" class="content-section">
+<h2>10.4 Transplanting Agentic Coding's Success Factors to Robotics</h2>
+<table class="styled-table">
+<thead><tr>
+<th>Success Factor</th>
+<th>In Coding</th>
+<th>Robotics Transplant Attempt</th>
+<th>Maturity</th>
+</tr></thead><tbody>
+<tr>
+<td>Fast, precise feedback</td>
+<td>Stack traces, tests</td>
+<td>VLM failure diagnosis (REFLECT)</td>
+<td>Early (69-79% accuracy)</td>
+</tr>
+<tr>
+<td>Low-cost experimentation</td>
+<td>Virtually free</td>
+<td>Simulation (SIMPLER)</td>
+<td>Mid (sim2real gap)</td>
+</tr>
+<tr>
+<td>Easy recovery</td>
+<td>git revert</td>
+<td>Safety-first (AutoRT Constitution)</td>
+<td>Early (prevention only)</td>
+</tr>
+<tr>
+<td>Structured state</td>
+<td>File system, AST</td>
+<td>3D scene graphs (SayPlan, KARMA)</td>
+<td>Mid (dynamic env challenge)</td>
+</tr>
+</tbody></table>
+<p>The fourth factor (structured state) is maturing fastest; the first (feedback quality) is the largest bottleneck. Simultaneous progress on all four determines Agentic Robotics' maturity.</p>
+</section>
+<section id="sec-10-5" class="content-section">
+<h2>10.5 Eight Open Problems</h2>
+<h3>[Fundamental] Semantic Translation of Physical Feedback</h3>
+<p>Converting sensor data to structured feedback LLMs can understand. The most urgent and most difficult challenge. Counterfactual reasoning, failure RAG, and tactile feedback integration are promising directions.</p>
+<h3>[Fundamental] Balancing Safety and Autonomy</h3>
+<p>The dilemma of permitting autonomous action while guaranteeing safety. AutoRT's Robot Constitution is the beginning, but vulnerable to long-tail risks. A hierarchical safety architecture — hardware-level reflexive safety + software-level reasoning-based safety — is needed.</p>
+<h3>[Structural] Real-Time World Models</h3>
+<p>Internal models that predict action outcomes before execution. VLAs are currently reactive with no future prediction. GR00T N1's dual-system is a starting point, but both prediction accuracy and speed are insufficient.</p>
+<h3>[Structural] Cross-Embodiment Generalization</h3>
+<p>A single model working across diverse robot hardware. Open X-Embodiment, Octo, and OpenVLA built the foundation, but true cross-embodiment generalization remains unachieved.</p>
+<h3>[Structural] Long-Horizon Cumulative Error</h3>
+<p>95% per-step success over 20 steps yields only 36% overall. BUMBLE's 47.1% is reality. Mid-task verification checkpoints and adaptive replanning frequency are the solution direction.</p>
+<h3>[Practical] Data Efficiency</h3>
+<p>Web data spans trillions of tokens; robot data reaches 1 million episodes. DROID, simulation data, and human video utilization are progressing but the gap persists.</p>
+<h3>[Practical] Real-Time Inference</h3>
+<p>VLA models (billions of parameters) vs robot control rates (100Hz+). TinyVLA, FAST, and hierarchical separation (HAMSTER, GR00T N1) are the solution path. Likely the fastest to be resolved, alongside hardware advances.</p>
+<h3>[Practical] Evaluation Standards</h3>
+<p>The absence of an Agentic Robotics equivalent to SWE-bench. CaP-X is the beginning, but standardized protocols are needed. Establishing this standard will accelerate the entire field.</p>
+</section>
+<section id="sec-10-6" class="content-section">
+<h2>10.6 Timeline Outlook: What Comes Next</h2>
+<p>Following the four paradigm shifts traced in this book, a fifth is foreshadowed:</p>
+<table class="styled-table">
+<thead><tr>
+<th>Shift</th>
+<th>Period</th>
+<th>Key Achievement</th>
+<th>Paradigm Lag</th>
+</tr></thead><tbody>
+<tr>
+<td>1. LLM External Planner</td>
+<td>2022</td>
+<td>LLM robot planning</td>
+<td>Concurrent</td>
+</tr>
+<tr>
+<td>2. Multimodal VLA</td>
+<td>2023</td>
+<td>End-to-end VLA</td>
+<td>Concurrent</td>
+</tr>
+<tr>
+<td>3. Open VLA Ecosystem</td>
+<td>2024</td>
+<td>VLA democratization</td>
+<td>~1 year</td>
+</tr>
+<tr>
+<td>4. Agentic Closed-Loop</td>
+<td>2025</td>
+<td>Closed-loop agentic systems</td>
+<td>~2 years</td>
+</tr>
+<tr>
+<td><strong>5. Embodied World Models</strong></td>
+<td><strong>2026-27</strong></td>
+<td><strong>Robots that predict the future</strong></td>
+<td><strong>?</strong></td>
+</tr>
+</tbody></table>
+<p>Signs of the fifth shift — <strong>Embodied World Models</strong> — are already visible. GR00T N1's dual-system, Code-as-Symbolic-Planner's symbolic reasoning, and video prediction model advances are converging. The ability to "simulate outcomes before acting" already exists in Agentic Coding — type checking, static analysis, and tests are "pre-execution outcome prediction." Robots need the same capability.</p>
+<p>Three conditions must be met: (1) real-time physics prediction models (currently seconds, needs milliseconds), (2) quantifying prediction uncertainty and incorporating it into decision-making, (3) graceful fallback to conservative behavior when prediction fails.</p>
+<h3>The Rise of Hybrid Architectures</h3>
+<p>The tension running through this entire book — <strong>Large Model (VLA: fast but fails) vs System-Level Orchestration (slow but robust)</strong> — resolves not in choosing one, but in hybridization. Two promising directions emerge.</p>
+<p>First, <strong>combining classical TAMP with VLM reasoning</strong>. VLA executes basic motions rapidly, while frame-level progress monitoring triggers VLM intervention for re-planning when deviations occur. This combines AutoTAMP's STL-based verification (<a href="ch05.html">Chapter 5</a>) with pi0's real-time control (<a href="ch04.html">Chapter 4</a>).</p>
+<p>Second, <strong>Orchestration→Distillation</strong>. Experiences accumulated through system-level orchestration (success/failure trajectories, re-planning patterns) are distilled into VLA, enabling VLA to gradually internalize the orchestrator's judgment. This parallels how in Agentic Coding, LLMs learn linter and type-checker patterns to progressively generate cleaner code.</p>
+<h3>Low-Level Temporal Constraints: The Unexplored Frontier</h3>
+<p>Most current Agentic Robotics research focuses on quasi-static manipulation — slowly and stably grasping and moving objects. But real-world industrial and daily settings require <strong>dynamic manipulation</strong> (throwing, catching, rapid assembly). In this domain, the agentic loop's "observe→plan→execute" cycle hits physical time constraints — catching a thrown ball requires sub-200ms reaction, shorter than current VLM inference times. Solving these low-level temporal constraints is the next frontier of Agentic Robotics.</p>
+</section>
+<section id="sec-10-7" class="content-section">
+<h2>10.7 Comparison with Agentic Coding: Final Synthesis</h2>
+<p>Agentic Coding is a world where the agentic loop <strong>already works</strong>. This success rests on three properties of the digital world: deterministic execution, instant feedback, and full reversibility. Agentic Robotics attempts to operate the same loop in a world where all three properties collapse.</p>
+<p>Yet what the papers in this book demonstrate is that the agentic loop <strong>does work</strong> in the physical world. PragmaBot improves from 35% to 84%; CaP-X compensates for the absence of human-crafted abstraction through agentic scaffolding; KARMA achieves 62.7x efficiency improvement through memory alone. Each loop component contributes meaningfully.</p>
+<p>Agentic Robotics reaching Agentic Coding's maturity is not a matter of time but of <strong>adaptation</strong>. The physical world's fundamental constraints will not dissolve, but building sufficiently effective systems within those constraints is achievable. Safety-first design, hierarchical verification, graceful degradation, and simulation-augmented experience — on these four pillars the future of Agentic Robotics stands.</p>
+</section>
+<section id="sec-10-8" class="content-section">
+<h2>10.8 Conclusion: A New Engineering for the Physical World</h2>
+<p>This book's map delivers three core messages.</p>
+<p><strong>First, the agentic loop is universal.</strong> Whether digital or physical, the observe-plan-execute-verify-reflect-remember loop is the core structure of autonomous systems. This universality is what enables transplanting Agentic Coding's lessons to robotics.</p>
+<p><strong>Second, the physical world imposes unique constraints.</strong> Three of seven dimensions (Error Feedback, Verification, Recoverability) are irreducible in principle. Ignoring these constraints and directly applying digital-world strategies leads to failure.</p>
+<p><strong>Third, adaptation is possible.</strong> From open-loop LLM Planners in 2022 to fully closed-loop PragmaBot in 2025, all components of the physical agentic loop were implemented in just four years. Maturity remains at the research prototype level, but the direction is clear.</p>
+<p>From LLM Planners to VLAs, from VLAs to Agentic Robotics — this journey is one of humanity's most fundamental engineering challenges: extending digital intelligence into the physical world. We hope this book serves as a useful compass for researchers and engineers navigating that challenge.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch09.html" class="prev">&larr; Ch.9</a>
+        <a href="./" class="toc-link">Index</a>
+        <span class="placeholder"></span>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch10-ref-1" value="1">Chi, C. et al., "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion," arXiv:2303.04137, 2023.</li>
+  <li id="ch10-ref-2" value="2">Liu, Z. et al., "REFLECT: Summarizing Robot Experiences for Failure Explanation and Correction," arXiv:2306.15724, 2023.</li>
+  <li id="ch10-ref-3" value="3">Ekpo, D. et al., "VeriGraph: Scene Graphs for Execution Verifiable Robot Planning," arXiv:2411.10446, 2024.</li>
+  <li id="ch10-ref-4" value="4">Khazatsky, A. et al., "DROID: A Large-Scale In-The-Wild Robot Manipulation Dataset," arXiv:2403.12945, 2024.</li>
+  <li id="ch10-ref-5" value="5">Rana, K. et al., "SayPlan: Grounding Large Language Models using 3D Scene Graphs," arXiv:2307.06135, 2023.</li>
+  <li id="ch10-ref-6" value="6">Jiang, H. et al., "RoboEXP: Action-Conditioned Scene Graph via Interactive Exploration," arXiv:2402.15487, 2024.</li>
+  <li id="ch10-ref-7" value="7">Wang, Z. et al., "KARMA: Augmenting Embodied AI Agents with Long-and-short Term Memory Systems," arXiv:2409.14908, 2024.</li>
+  <li id="ch10-ref-8" value="8">Xie, Q. et al., "Embodied-RAG: General Non-parametric Embodied Memory for Retrieval and Generation," arXiv:2409.18313, 2024.</li>
+  <li id="ch10-ref-9" value="9">Belkhale, S. et al., "RT-H: Action Hierarchies Using Language," arXiv:2403.01823, 2024.</li>
+  <li id="ch10-ref-10" value="10">Li, J. et al., "HAMSTER: Hierarchical Action Models for Open-World Robot Manipulation," arXiv:2502.05485, 2025.</li>
+  <li id="ch10-ref-11" value="11">Shi, L. X. et al., "Hi Robot: Open-Ended Instruction Following with Hierarchical VLA," arXiv:2502.19417, 2025.</li>
+  <li id="ch10-ref-12" value="12">Chen, Y. et al., "Code-as-Symbolic-Planner: Leveraging Code Generation for TAMP," arXiv:2503.01700, 2025.</li>
+  <li id="ch10-ref-13" value="13">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch10-ref-14" value="14">Li, X. et al., "Evaluating Real-World Robot Manipulation Policies in Simulation (SIMPLER)," arXiv:2405.05941, 2024.</li>
+  <li id="ch10-ref-15" value="15">Fu, M. et al., "CaP-X: Benchmarking Coding Agents for Robot Manipulation," arXiv:2603.22435, 2026.</li>
+  <li id="ch10-ref-16" value="16">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch10-ref-17" value="17">Shah, M. et al., "BUMBLE: Unifying Reasoning and Acting with VLMs for Building-wide Mobile Manipulation," arXiv:2410.06237, 2024.</li>
+  <li id="ch10-ref-18" value="18">PragmaBot, "Learning to Plan and Act by Experiencing in the Real World," arXiv:2507.16713, 2025.</li>
+  <li id="ch10-ref-19" value="19">Kim, M. J. et al., "OpenVLA: An Open-Source Vision-Language-Action Model," arXiv:2406.09246, 2024.</li>
+  <li id="ch10-ref-20" value="20">Black, K. et al., "π0: A Vision-Language-Action Flow Model for General Robot Control," arXiv:2410.24164, 2024.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch09.html" class="prev">&larr; Ch.9</a>
+        <a href="./" class="toc-link">Index</a>
+        <span class="placeholder"></span>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

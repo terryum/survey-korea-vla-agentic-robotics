@@ -1,0 +1,10 @@
+{
+  "outputDirectory": "docs",
+  "buildCommand": "",
+  "installCommand": "",
+  "framework": null,
+  "redirects": [
+    { "source": "/ch:num(\\d+).html", "destination": "/ko/ch:num.html", "statusCode": 302 },
+    { "source": "/references.html", "destination": "/ko/references.html", "statusCode": 302 }
+  ]
+}

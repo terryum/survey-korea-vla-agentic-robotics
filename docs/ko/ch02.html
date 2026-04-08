@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 2: LLM as Planner — 제로샷 계획과 그라운딩</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-1">
+  <nav class="sidebar-nav part-1">
+    <a class="nav-dot active" data-section="sec-요약">
+      <span class="dot"></span>
+      <span class="label">요약</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-1">
+      <span class="dot"></span>
+      <span class="label">2.1 도입: LLM의 세계 지식이라는 발견</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-2">
+      <span class="dot"></span>
+      <span class="label">2.2 Language Models as Zero-Shot Pl...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-3">
+      <span class="dot"></span>
+      <span class="label">2.3 SayCan: 물리 세계에 접지시키다</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-4">
+      <span class="dot"></span>
+      <span class="label">2.4 SayPlan: 환경 표현을 구조화하다</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-5">
+      <span class="dot"></span>
+      <span class="label">2.5 진화 경로: 생성에서 구조화로</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-6">
+      <span class="dot"></span>
+      <span class="label">2.6 Agentic Coding과의 대비: 도구 호출의 결정론...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-7">
+      <span class="dot"></span>
+      <span class="label">2.7 미해결 문제와 전망</span>
+    </a>
+    <a class="nav-dot" data-section="sec-참고문헌">
+      <span class="dot"></span>
+      <span class="label">참고문헌</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part I: 기초 — LLM이 로봇을 만나다</span>
+        <h1>Chapter 2: LLM as Planner — 제로샷 계획과 그라운딩</h1>
+        <div class="chapter-meta">
+          <span>집필일: 2026-04-08</span>
+          <span>최종수정일: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-요약" class="content-section">
+<h2>요약</h2>
+<p>2022년, 사전학습된 LLM이 로봇의 고수준 계획기로 활용될 수 있음이 입증되었습니다. 이 전환은 "생성" → "접지" → "구조화"의 세 단계로 진행되었으며, 각 단계는 이전의 한계를 정확히 겨냥한 것이었습니다. 그러나 텍스트만으로는 물리 세계를 제어할 수 없다는 한계가 명확해지면서, Code as Policy와 VLA라는 두 갈래의 후속 패러다임이 촉발되었습니다.</p>
+</section>
+<section id="sec-2-1" class="content-section">
+<h2>2.1 도입: LLM의 세계 지식이라는 발견</h2>
+<p>2022년 초, 연구자들은 놀라운 사실을 발견했습니다. 인터넷 텍스트로 학습된 LLM이 "아침 식사 만들기"라는 지시를 "냉장고 열기 → 우유 꺼내기 → 냉장고 닫기 → ..."와 같은 행동 시퀀스로 분해할 수 있다는 것입니다. 이 능력은 명시적으로 학습된 것이 아니라, 인터넷 텍스트에 암묵적으로 내재된 "세계 지식(world knowledge)"에서 비롯되었습니다.</p>
+<p>이 발견은 로봇 계획의 패러다임을 바꿨습니다. 기존에는 PDDL이나 behavior tree 같은 형식 체계를 전문가가 수작업으로 설계해야 했습니다. 새 작업마다 새 계획 로직이 필요했고, 이는 로봇의 범용성을 제한하는 핵심 병목이었습니다. LLM은 이 병목을 우회하는 잠재력을 보였습니다.</p>
+<p>그러나 "계획을 세울 수 있는가?"라는 질문은 곧 "그 계획이 물리 세계에서 실행 가능한가?"라는 더 어려운 질문으로 전환되었습니다. 이 전환의 궤적이 이 챕터의 핵심입니다.</p>
+</section>
+<section id="sec-2-2" class="content-section">
+<h2>2.2 Language Models as Zero-Shot Planners: 기점</h2>
+<p>[Huang et al., 2022]은 LLM을 로봇 계획에 활용하는 연구의 기점(origin point)입니다. VirtualHome 환경에서 GPT-3에게 "make breakfast"를 주면, 실행 가능한 행동 시퀀스를 zero-shot으로 생성할 수 있음을 보였습니다.</p>
+<p>핵심 기법은 세 가지였습니다. <strong>Admissible Action Parsing</strong>은 LLM의 자유 형식 출력을 환경이 허용하는 행동 집합에 의미론적으로 매핑합니다. <strong>Autoregressive Trajectory Correction</strong>은 이전 행동의 결과를 피드백으로 활용하여 자기회귀적으로 수정합니다. <strong>Dynamic Example Selection</strong>은 유사 예제를 동적으로 선택하여 few-shot 프롬프트를 구성합니다.</p>
+<p>결과는 고무적이면서도 한계를 보여줬습니다. 실행 가능성(executability)은 18%에서 79%로 대폭 향상되었지만, 의미적 정확성(correctness)은 LCS 기준 32.87%에 머물렀습니다. 실행은 가능하지만 올바르지 않은 계획 — 이것은 LLM 플래너의 근본적 딜레마를 예고하는 것이었습니다.</p>
+<p>가장 심각한 한계는 <strong>접지(grounding)의 부재</strong>였습니다. LLM은 물리 환경의 현재 상태를 관찰하지 못했습니다. "냉장고에서 우유를 꺼내라"고 계획했지만, 냉장고에 우유가 없을 수도 있습니다. 디지털 세계에서 코드 에이전트가 파일 시스템을 즉시 읽을 수 있는 것과 달리, 물리 세계의 관찰-행동 간 간극(observation-action gap)이 드러난 최초의 사례였습니다.</p>
+</section>
+<section id="sec-2-3" class="content-section">
+<h2>2.3 SayCan: 물리 세계에 접지시키다</h2>
+<p>[Ahn et al., 2022]의 SayCan은 LLM의 의미적 지식("Say")과 로봇의 행동 가능성 함수("Can", affordance function)를 결합하여 접지 문제를 정면으로 공략했습니다.</p>
+<p>핵심 아이디어는 확률의 곱셈입니다:</p>
+<div class="math-block">P(\text{action} \mid \text{instruction}) = P_{\text{LLM}}(\text{useful} \mid \text{instruction, action}) \times P_{\text{affordance}}(\text{feasible} \mid \text{state, action})</div>
+<p>LLM은 "이 행동이 작업에 유용한가?"를, affordance 함수는 "이 행동이 현재 환경에서 실행 가능한가?"를 각각 점수화합니다. 551개의 사전학습된 로봇 스킬에 대해 이 점수를 계산하고, 가장 높은 행동을 선택합니다.</p>
+<p>실제 주방 환경에서 101개 작업을 평가한 결과, PaLM 540B를 LLM 백본으로 사용할 때 계획 성공률 84%, 실행 성공률 74%를 달성했습니다. FLAN 대비 오류율이 50% 감소했으며, "나 콜라를 테이블에 쏟았어, 어떻게 치워줄 수 있어?"와 같은 최대 8단계의 long-horizon 작업도 성공적으로 수행했습니다.</p>
+<p>"Say + Can" 패러다임은 이후 연구의 표준 프레임워크가 되었습니다. RT-1, RT-2, PaLM-E로 이어지는 Google의 로봇 파운데이션 모델 계열의 직접적 전신이며, AutoRT(2024)에서 대규모 로봇 관리 시스템으로 확장되었습니다 (<a href="ch08.html">Chapter 8</a>).</p>
+<p>그러나 SayCan의 한계도 명확했습니다. 551개 스킬이라는 <strong>폐쇄형 스킬 세트</strong>, 실시간 환경 변화를 반영하지 못하는 <strong>정적 affordance</strong>, 실패 시 <strong>재계획 메커니즘의 부재</strong>가 그것입니다. 특히 새로운 스킬을 추가하려면 추가 학습이 필요하다는 점은, Agentic Coding에서 새 API를 tool description만으로 즉시 추가할 수 있는 것과 극명한 대조를 이룹니다.</p>
+</section>
+<section id="sec-2-4" class="content-section">
+<h2>2.4 SayPlan: 환경 표현을 구조화하다</h2>
+<p>[Rana et al., 2023]의 SayPlan은 SayCan의 스케일 한계를 직접적으로 겨냥했습니다. 핵심 통찰은 <strong>"환경 표현이 LLM 계획의 스케일을 결정한다"</strong>는 것입니다.</p>
+<p>SayPlan은 3D 씬 그래프(3DSG)의 계층적 구조(building → floor → room → object)를 활용합니다. 전체 그래프를 LLM에 직접 입력하는 대신, 작업에 관련된 하위 그래프만 선택적으로 확장하는 <strong>Hierarchical Semantic Search</strong>를 수행합니다. 고전적 경로 계획기와의 결합으로 LLM의 planning horizon을 줄이고, <strong>Iterative Replanning Pipeline</strong>으로 비실행 가능한 행동을 수정합니다.</p>
+<p>결과는 인상적이었습니다. 3층 건물, 36개 방, 140개 이상의 객체가 있는 대규모 환경에서 long-horizon 작업을 계획하고 실행했습니다. Iterative replanning으로 환각(hallucination) 오류 대부분을 교정했으나, 6.67%의 작업에서는 환각된 노드를 교정하지 못했습니다.</p>
+<p>SayPlan이 남긴 가장 중요한 유산은 <strong>씬 그래프 + LLM 계획</strong>이라는 조합의 확립입니다. 이 조합은 KARMA [Wang et al., 2024]의 장기 기억 시스템, Embodied-RAG [Xie et al., 2024]의 공간-의미 검색, VeriGraph [Ekpo et al., 2024]의 실행 검증으로 이어졌습니다 (<a href="ch07.html">Chapter 7</a>).</p>
+</section>
+<section id="sec-2-5" class="content-section">
+<h2>2.5 진화 경로: 생성에서 구조화로</h2>
+<p>세 논문을 관통하는 진화 경로는 명확합니다:</p>
+<table class="styled-table">
+<thead><tr>
+<th>단계</th>
+<th>핵심 성취</th>
+<th>남은 한계</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>생성</strong> (LLM as Planners)</td>
+<td>LLM이 계획을 생성할 수 있다</td>
+<td>물리 세계에 접지되지 않음</td>
+</tr>
+<tr>
+<td><strong>접지</strong> (SayCan)</td>
+<td>Affordance로 접지시킨다</td>
+<td>제한된 공간, 정적 환경</td>
+</tr>
+<tr>
+<td><strong>구조화</strong> (SayPlan)</td>
+<td>씬 그래프로 스케일링한다</td>
+<td>동적 환경 미대응, 환각 잔존</td>
+</tr>
+</tbody></table>
+<p>각 단계는 정확히 이전 단계의 핵심 한계를 해결하면서 새로운 한계를 노출했습니다. 그리고 이 세 단계가 공통으로 해결하지 못한 과제들이 후속 연구 흐름을 촉발했습니다:</p>
+<ul>
+<li>"계획을 코드로 표현하면?" → Code as Policy (<a href="ch03.html">Chapter 3</a>)</li>
+<li>"LLM이 직접 행동을 출력하면?" → VLA (<a href="ch04.html">Chapter 4</a>)</li>
+<li>"고수준 계획과 저수준 제어를 분리하면?" → Hierarchical Planning (<a href="ch05.html">Chapter 5</a>)</li>
+<li>"동적 환경을 기억하려면?" → Memory & Scene Graph (<a href="ch07.html">Chapter 7</a>)</li>
+<li>"실패를 감지하고 복구하려면?" → Agentic Systems (<a href="ch08.html">Chapter 8</a>)</li>
+</ul>
+</section>
+<section id="sec-2-6" class="content-section">
+<h2>2.6 Agentic Coding과의 대비: 도구 호출의 결정론성</h2>
+<p>이 챕터의 세 논문이 씨름한 핵심 문제는 <strong>접지(grounding)</strong> — LLM의 계획을 물리 세계에 연결하는 것입니다. 이 문제가 왜 Agentic Coding에서는 발생하지 않는지 살펴보면, 근본적 차이가 드러납니다.</p>
+<p>Agentic Coding에서 LLM이 "파일을 읽어라"라고 계획하면, <code>cat file.txt</code> 명령이 즉시, 결정론적으로, 완전하게 실행됩니다. 도구의 사용 가능 여부는 API 문서나 타입 시그니처로 확인 가능하고, 결과는 텍스트로 즉시 반환됩니다. <strong>도구 호출이 결정론적</strong>이라는 것이 핵심입니다.</p>
+<p>반면 SayCan에서 "로봇 스킬 실행 가능 여부"는 물리 환경 상태에 따라 달라지며, 별도의 affordance 모델 학습이 필요합니다. 같은 "컵 잡기" 스킬도 컵의 위치, 방향, 표면 상태에 따라 성공 확률이 변합니다. <strong>도구 호출이 확률적</strong>입니다. SayPlan이 3D 씬 그래프를 도입한 것은, 코드베이스를 <code>tree</code> → 특정 파일 → 특정 함수로 drill-down하는 것과 구조적으로 유사하지만, 물리 세계의 씬 그래프는 구축 비용이 높고 환경 변화에 따라 갱신이 필요하다는 근본적 차이가 있습니다.</p>
+<p>이 차이는 단순한 기술적 문제가 아닙니다. Agentic Coding의 결정론적 도구 호출은 "시도하고 실패하면 다시 시도" 전략을 무한히 반복할 수 있게 합니다. Agentic Robotics의 확률적 실행은 매 시도마다 비용과 위험이 수반되므로, "시도 전에 성공 가능성을 추정"해야 합니다. SayCan의 affordance scoring은 바로 이 추정의 최초 시도였습니다.</p>
+</section>
+<section id="sec-2-7" class="content-section">
+<h2>2.7 미해결 문제와 전망</h2>
+<p>LLM Planner 패러다임이 남긴 근본적 미해결 문제는 세 가지입니다.</p>
+<p>첫째, <strong>폐루프 재계획의 부재</strong>입니다. 세 논문 모두 실행 중 실패에 대한 견고한 복구 메커니즘이 없습니다. SayPlan의 iterative replanning이 가장 진전된 시도이지만, 물리 실행 실패에 대한 대응은 아닙니다. 이 과제는 REFLECT [Liu et al., 2023]와 BUMBLE [Shah et al., 2024]에서 본격적으로 다뤄집니다 (<a href="ch08.html">Chapter 8</a>).</p>
+<p>둘째, <strong>동적 환경 추적</strong>입니다. 세 논문 모두 정적 또는 준정적 환경을 가정합니다. 다른 사람이나 로봇이 환경을 변경했을 때 이를 감지하고 계획에 반영하는 메커니즘이 없습니다. KARMA [Wang et al., 2024]의 단기 기억 시스템이 이 방향의 첫 발걸음입니다 (<a href="ch07.html">Chapter 7</a>).</p>
+<p>셋째, <strong>환각(hallucination)의 완전 제거</strong>입니다. SayPlan에서 6.67%의 잔존 환각은 LLM 기반 계획의 고유한 한계를 보여줍니다. AutoTAMP [Chen et al., 2023]의 형식 검증과 VeriGraph [Ekpo et al., 2024]의 씬 그래프 기반 검증이 이 문제를 다루지만, 완전한 해결에는 이르지 못했습니다 (<a href="ch05.html">Chapter 5, 7</a>).</p>
+<p>서베이 논문 [2025]의 결론이 시사하는 바는 명확합니다: LLM은 단독 플래너로 부적합하지만, 전통적 계획 방법과 결합하면 강력합니다. LLM의 유연성과 전통적 계획의 엄밀성을 결합하는 하이브리드 접근이 가장 유망한 방향이며, 이는 Chapter 5의 계층적 계획에서 본격적으로 탐색됩니다.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch01.html" class="prev">&larr; Ch.1</a>
+        <a href="./" class="toc-link">목록</a>
+        <a href="ch03.html" class="next">Ch.3 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>참고문헌</h2>
+<ol class="references-list">
+  <li id="ch2-ref-1" value="1">Huang, W. et al., "Language Models as Zero-Shot Planners: Extracting Actionable Knowledge for Embodied Agents," arXiv:2201.07207, 2022.</li>
+  <li id="ch2-ref-2" value="2">Ahn, M. et al., "Do As I Can, Not As I Say: Grounding Language in Robotic Affordances," arXiv:2204.01691, 2022.</li>
+  <li id="ch2-ref-3" value="3">Rana, K. et al., "SayPlan: Grounding Large Language Models using 3D Scene Graphs for Scalable Robot Task Planning," arXiv:2307.06135, 2023.</li>
+  <li id="ch2-ref-4" value="4">Liu, Z. et al., "REFLECT: Summarizing Robot Experiences for Failure Explanation and Correction," arXiv:2306.15724, 2023.</li>
+  <li id="ch2-ref-5" value="5">Wang, Z. et al., "KARMA: Augmenting Embodied AI Agents with Long-and-short Term Memory Systems," arXiv:2409.14908, 2024.</li>
+  <li id="ch2-ref-6" value="6">Xie, Q. et al., "Embodied-RAG: General Non-parametric Embodied Memory for Retrieval and Generation," arXiv:2409.18313, 2024.</li>
+  <li id="ch2-ref-7" value="7">Ekpo, D. et al., "VeriGraph: Scene Graphs for Execution Verifiable Robot Planning," arXiv:2411.10446, 2024.</li>
+  <li id="ch2-ref-8" value="8">Chen, Y. et al., "AutoTAMP: Autoregressive Task and Motion Planning with LLMs as Translators and Checkers," arXiv:2306.06531, 2023.</li>
+  <li id="ch2-ref-9" value="9">Shah, M. et al., "BUMBLE: Unifying Reasoning and Acting with Vision-Language Models for Building-wide Mobile Manipulation," arXiv:2410.06237, 2024.</li>
+  <li id="ch2-ref-10" value="10">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch2-ref-11" value="11">Survey, "A Survey on Large Language Models for Automated Planning," arXiv:2502.12435, 2025.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch01.html" class="prev">&larr; Ch.1</a>
+        <a href="./" class="toc-link">목록</a>
+        <a href="ch03.html" class="next">Ch.3 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

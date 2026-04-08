@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM 플래너에서 에이전틱 로보틱스까지</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main>
+    <section class="hero">
+      <h1 class="gradient-text">LLM 플래너에서 에이전틱 로보틱스까지</h1>
+      <p class="subtitle">Physical AI의 미래 &mdash; LLM 기반 계획에서 VLA, Code as Policy를 거쳐 에이전틱 로보틱스로</p>
+      <p class="description">
+        Agentic Coding의 code&rarr;tool&rarr;execution&rarr;error&rarr;LLM 루프가 물리 세계에서 작동하려면 무엇이 달라져야 하는가? &mdash; 4 Parts, 10 Chapters
+      </p>
+      <p class="hero-dates" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+        <span>First published: 2026-04-08</span>
+        <span style="margin: 0 0.5rem;">|</span>
+        <span>Last updated: 2026-04-08</span>
+      </p>
+      <div class="hero-cta">
+        <a href="ch01.html" class="btn-primary">읽기 시작</a>
+      </div>
+    </section>
+
+    <section class="intro-section">
+      <div class="intro-list">
+        <div class="intro-item">
+          <span class="item-icon">&#x1F916;</span>
+          <div class="intro-item-content">
+            <h4>Agentic Coding vs Agentic Robotics</h4>
+            <p>디지털 에이전트의 성공 패턴을 거울 삼아, 물리 세계에서의 에이전틱 시스템이 넘어야 할 근본적 차이를 분석합니다.</p>
+          </div>
+        </div>
+        <div class="intro-item">
+          <span class="item-icon">&#x1F4DA;</span>
+          <div class="intro-item-content">
+            <h4>연구 흐름 추적</h4>
+            <p>LLM as Planner(2022)부터 VLA, Code as Policy를 거쳐 최신 Agentic Robotics까지의 패러다임 전환을 시간순으로 짚습니다.</p>
+          </div>
+        </div>
+        <div class="intro-item">
+          <span class="item-icon">&#x1F52C;</span>
+          <div class="intro-item-content">
+            <h4>핵심 논문 50+편 분석</h4>
+            <p>SayCan, RT-2, OpenVLA, pi0, KARMA, BUMBLE 등 주요 논문의 기여, 실험 수치, 한계를 비판적으로 분석합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapters-section">
+
+      <div class="part-group part-1">
+        <h2 class="part-title">Part I: 기초 &mdash; LLM이 로봇을 만나다</h2>
+        <div class="chapter-grid">
+          <a href="ch01.html" class="chapter-card fade-in">
+            <span class="ch-num">01</span>
+            <h3>서론 &mdash; Agentic Coding에서 Agentic Robotics로</h3>
+            <p>핵심 비유, 7대 차원 비교, 이 책의 질문과 구조</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+          <a href="ch02.html" class="chapter-card fade-in">
+            <span class="ch-num">02</span>
+            <h3>LLM as Planner &mdash; 제로샷 계획과 그라운딩</h3>
+            <p>LLM as Planners, SayCan, SayPlan, affordance grounding</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+          <a href="ch03.html" class="chapter-card fade-in">
+            <span class="ch-num">03</span>
+            <h3>Code as Policies &mdash; 코드로 로봇을 제어하다</h3>
+            <p>CaP, Code-as-Symbolic-Planner, CaP-X, code generation</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="part-group part-2">
+        <h2 class="part-title">Part II: VLA 혁명</h2>
+        <div class="chapter-grid">
+          <a href="ch04.html" class="chapter-card fade-in">
+            <span class="ch-num">04</span>
+            <h3>Vision-Language-Action 모델의 부상</h3>
+            <p>PaLM-E, RT-2, OpenVLA, pi0, GR00T N1, generalist policy</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+          <a href="ch05.html" class="chapter-card fade-in">
+            <span class="ch-num">05</span>
+            <h3>계층적 계획 &mdash; 고수준에서 저수준으로</h3>
+            <p>AutoTAMP, RT-H, Hi Robot, HAMSTER, hierarchical VLA</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+          <a href="ch06.html" class="chapter-card fade-in">
+            <span class="ch-num">06</span>
+            <h3>저수준 제어 &mdash; Diffusion Policy와 3D 표현</h3>
+            <p>Diffusion Policy, 3D Diffuser Actor, DROID, action tokenization</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="part-group part-3">
+        <h2 class="part-title">Part III: 에이전틱 로보틱스를 향하여</h2>
+        <div class="chapter-grid">
+          <a href="ch07.html" class="chapter-card fade-in">
+            <span class="ch-num">07</span>
+            <h3>메모리와 세계 표현</h3>
+            <p>KARMA, Embodied-RAG, scene graph, spatial memory</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+          <a href="ch08.html" class="chapter-card fade-in">
+            <span class="ch-num">08</span>
+            <h3>폐루프 에이전틱 시스템</h3>
+            <p>REFLECT, BUMBLE, AutoRT, PragmaBot, error recovery</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+          <a href="ch09.html" class="chapter-card fade-in">
+            <span class="ch-num">09</span>
+            <h3>Sim-to-Real 전이와 평가</h3>
+            <p>SIMPLER, language-based sim2real, evaluation benchmarks</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="part-group part-4">
+        <h2 class="part-title">Part IV: 근본적 차이 &mdash; 디지털 에이전트 vs 물리 에이전트</h2>
+        <div class="chapter-grid">
+          <a href="ch10.html" class="chapter-card fade-in">
+            <span class="ch-num">10</span>
+            <h3>Agentic Coding vs Agentic Robotics &mdash; 간극과 미래</h3>
+            <p>7대 차원 종합 분석, 근본적 차이, 미래 연구 방향</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="part-group part-2">
+        <h2 class="part-title">부록 (Appendices)</h2>
+        <div class="chapter-grid">
+          <a href="references.html" class="chapter-card fade-in">
+            <span class="ch-num">A</span>
+            <h3>통합 참고문헌 (References)</h3>
+            <p>전체 참고문헌 목록</p>
+            <span class="arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

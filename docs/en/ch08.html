@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 8: Closed-Loop Agentic Systems</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-3">
+  <nav class="sidebar-nav part-3">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-1">
+      <span class="dot"></span>
+      <span class="label">8.1 Introduction: Physically Implem...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-2">
+      <span class="dot"></span>
+      <span class="label">8.2 REFLECT: Explaining Failures</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-3">
+      <span class="dot"></span>
+      <span class="label">8.3 AutoRT: Safe Autonomy at Scale</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-4">
+      <span class="dot"></span>
+      <span class="label">8.4 BUMBLE: An Integrated Agent at ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-5">
+      <span class="dot"></span>
+      <span class="label">8.5 PragmaBot: Learning from Experi...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-6">
+      <span class="dot"></span>
+      <span class="label">8.6 Evolution Stages of the Agentic...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-7">
+      <span class="dot"></span>
+      <span class="label">8.7 Comparison with Agentic Coding:...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-8-8">
+      <span class="dot"></span>
+      <span class="label">8.8 Open Problems and Outlook</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part III: Toward Agentic Robotics</span>
+        <h1>Chapter 8: Closed-Loop Agentic Systems</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>While previous chapters addressed individual components of the agentic loop — planning, control, memory — this chapter covers research that integrates them into a <strong>closed-loop system</strong>. REFLECT teaches robots to explain failures, AutoRT safely manages robot fleets at scale, BUMBLE demonstrates an integrated agentic loop at building scale, and PragmaBot implements a complete agentic robot that learns from experience. This trajectory shows what Agentic Coding's code-execute-debug loop looks like in the physical world.</p>
+</section>
+<section id="sec-8-1" class="content-section">
+<h2>8.1 Introduction: Physically Implementing the Agentic Loop</h2>
+<p>Agentic Coding's loop is already complete. Claude Code automatically generates code, executes it, analyzes errors, and fixes them. This loop is production-ready thanks to the digital world's three properties analyzed in Chapter 1: deterministic execution, precise feedback, and full reversibility.</p>
+<p>Implementing the same loop in the physical world makes every step fundamentally harder. Observations are incomplete due to sensor noise, execution is stochastic, failure causes are ambiguous, and reversal is impossible. The four papers in this chapter progressively implement the agentic loop despite these challenges.</p>
+</section>
+<section id="sec-8-2" class="content-section">
+<h2>8.2 REFLECT: Explaining Failures</h2>
+<p>REFLECT [Liu et al., 2023] introduces a core agentic loop component — <strong>reflection</strong> — to robots. It generates <strong>hierarchical summaries</strong> of robot past experiences from multisensory observations and queries an LLM to <strong>explain failure causes</strong>.</p>
+<p>The methodology proceeds in four stages: hierarchical experience summarization from multisensory data, <strong>Progressive Failure Explanation</strong> where the LLM progressively analyzes summaries to infer failure causes, correction plan generation based on failure explanations, and evaluation on the RoboFail Dataset.</p>
+<p>REFLECT directly corresponds to Agentic Coding's <strong>error analysis, debugging, and fix</strong> loop. The key difference: code errors have relatively clear causes via stack traces and logs, while robot failures require inferring causes from visual, force, and position data across multiple sensory modalities. Determining "why it failed" is itself far harder for robots.</p>
+</section>
+<section id="sec-8-3" class="content-section">
+<h2>8.3 AutoRT: Safe Autonomy at Scale</h2>
+<p>AutoRT [Brohan et al., 2024] elevates Agentic Robotics to a new scale. It autonomously manages multiple robots using VLM (scene understanding) + LLM (task proposal) + <strong>Robot Constitution</strong>.</p>
+<p>Over 7 months across 4 buildings, 20+ robots were operated, collecting 77,000 demonstrations at a 1:5 human-to-robot supervision ratio.</p>
+<p>The <strong>Robot Constitution</strong>, inspired by Asimov's Three Laws, hierarchically applies basic safety rules + embodiment constraints + task-specific restrictions. Rules like "do not throw objects at humans" and "remove packaging before microwaving food" are automatically generated by the LLM.</p>
+<p>This corresponds to Agentic Coding's <strong>system prompts and safety guardrails</strong>. Just as Claude Code follows rules like "confirm before destructive operations" and "prevent security vulnerabilities," AutoRT's robots follow the Robot Constitution. The critical difference: safety violations in code can be reversed with <code>git revert</code>; a robot's physical accident cannot be undone. This irreversibility is the Robot Constitution's reason for existence.</p>
+</section>
+<section id="sec-8-4" class="content-section">
+<h2>8.4 BUMBLE: An Integrated Agent at Building Scale</h2>
+<p>BUMBLE [Shah et al., 2024] is the most comprehensive agentic framework for <strong>building-wide</strong> mobile manipulation, integrating reasoning and action via VLM.</p>
+<p>A single VLM manages RGBD perception, a manipulation skill library, and dual-layered memory. It accepts free-form language instructions, selects and executes parameterized skills, and replans upon failure detection.</p>
+<p>Over 90+ hours of evaluation: 70 trials, 47.1% average success rate, maximum 12-step skill sequences, approximately 15 minutes per trial. Primary failure causes were VLM reasoning errors — collision prediction failures, incorrect object selection among 20-25 distractors, elevator button misrecognition.</p>
+<p>The 47.1% success rate provides an honest assessment of the current state. While Agentic Coding has reached production-ready maturity, Agentic Robotics remains at the research prototype stage. The gap's core: VLM reasoning capability is the system's ceiling.</p>
+</section>
+<section id="sec-8-5" class="content-section">
+<h2>8.5 PragmaBot: Learning from Experience</h2>
+<p>PragmaBot [2025] demonstrates the most complete form of the agentic loop. Through <strong>Verbal Reinforcement Learning</strong>, LLM agents learn from experience through self-reflection and few-shot learning without parameter updates.</p>
+<p>The VLM serves as the robot's "brain" and "eyes" in three roles: (i) action planning, (ii) action success verification, (iii) experience summarization. <strong>STM</strong> tracks executed actions and feedback signals; <strong>LTM</strong> stores lessons from past successes; <strong>RAG</strong> retrieves relevant knowledge from LTM for similar tasks.</p>
+<table class="styled-table">
+<thead><tr>
+<th>Condition</th>
+<th>Success Rate</th>
+</tr></thead><tbody>
+<tr>
+<td>Baseline (no STM)</td>
+<td>35%</td>
+</tr>
+<tr>
+<td>STM-based self-reflection</td>
+<td><strong>84%</strong> (2.4x)</td>
+</tr>
+<tr>
+<td>LTM + RAG (new tasks)</td>
+<td><strong>80%</strong> (single trial)</td>
+</tr>
+<tr>
+<td>Naive prompting</td>
+<td>22%</td>
+</tr>
+</tbody></table>
+<p>The STM improvement (35% to 84%) and LTM+RAG improvement on new tasks (22% to 80%) demonstrate that each agentic loop component — reflection, memory, retrieval — contributes meaningfully. The emergence of <strong>intelligent object interactions</strong> not anticipated by designers hints at the agentic loop's potential.</p>
+</section>
+<section id="sec-8-6" class="content-section">
+<h2>8.6 Evolution Stages of the Agentic Loop</h2>
+<table class="styled-table">
+<thead><tr>
+<th>Stage</th>
+<th>Period</th>
+<th>Representative</th>
+<th>Loop Structure</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Open-loop</strong></td>
+<td>2022</td>
+<td>SayCan, CaP</td>
+<td>Plan, Execute (no feedback)</td>
+</tr>
+<tr>
+<td><strong>Reflection</strong></td>
+<td>2023</td>
+<td>REFLECT</td>
+<td>Plan, Execute, Reflect</td>
+</tr>
+<tr>
+<td><strong>Memory</strong></td>
+<td>2024</td>
+<td>KARMA, BUMBLE</td>
+<td>Plan, Execute, Reflect, Remember, Plan</td>
+</tr>
+<tr>
+<td><strong>Full closed-loop</strong></td>
+<td>2025</td>
+<td>PragmaBot</td>
+<td>Plan, Execute, Reflect, Remember, Learn, Plan</td>
+</tr>
+</tbody></table>
+<p>Each stage adds precisely one core component, with PragmaBot completing the full closed loop through "learning from experience."</p>
+</section>
+<section id="sec-8-7" class="content-section">
+<h2>8.7 Comparison with Agentic Coding: Loop Speed and Cost</h2>
+<p>The loop structure is identical, but the physical world's non-determinism, irreversibility, and cost fundamentally change the difficulty of each step.</p>
+<table class="styled-table">
+<thead><tr>
+<th>Loop Stage</th>
+<th>Agentic Coding</th>
+<th>Agentic Robotics</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Observe</strong></td>
+<td>File reads (ms, complete)</td>
+<td>Cameras/sensors (noisy, partial)</td>
+</tr>
+<tr>
+<td><strong>Plan</strong></td>
+<td>Code generation (seconds)</td>
+<td>Action sequence (seconds)</td>
+</tr>
+<tr>
+<td><strong>Execute</strong></td>
+<td>Code execution (ms, deterministic)</td>
+<td>Physical action (minutes, stochastic)</td>
+</tr>
+<tr>
+<td><strong>Verify</strong></td>
+<td>Tests (ms)</td>
+<td>Observation/simulation (minutes)</td>
+</tr>
+<tr>
+<td><strong>Reflect</strong></td>
+<td>Error analysis (stack traces)</td>
+<td>Failure analysis (multisensory)</td>
+</tr>
+<tr>
+<td><strong>Remember</strong></td>
+<td>Context/files (instant)</td>
+<td>STM/LTM/scene graphs</td>
+</tr>
+<tr>
+<td><strong>Revert</strong></td>
+<td>git revert</td>
+<td><strong>Impossible</strong></td>
+</tr>
+<tr>
+<td><strong>Trial cost</strong></td>
+<td>~Free</td>
+<td>High</td>
+</tr>
+</tbody></table>
+<p>PragmaBot's 35%-to-84% improvement shows the universal effectiveness of the agentic loop. BUMBLE's 47.1% reveals the physical world's additional challenges. The key is <strong>loop speed</strong>: Agentic Coding loops in seconds; PragmaBot loops in minutes. Per-iteration learning may be similar, but the difference in iterations per unit time determines final performance. Simulation acceleration (see Chapter 9) is the key strategy for closing this gap.</p>
+</section>
+<section id="sec-8-8" class="content-section">
+<h2>8.8 Open Problems and Outlook</h2>
+<p>First, <strong>balancing safety and autonomy</strong>. AutoRT's Robot Constitution is rule-based safety's beginning, but long-tail risks that cannot be enumerated by rules remain. A hierarchical safety architecture — hardware-level reflexive safety (immediate cutoff) combined with software-level reasoning-based safety (LLM judgment) — is needed.</p>
+<p>Second, <strong>long-horizon cumulative error</strong>. Even 95% per-step success yields only 36% over 20 steps. BUMBLE's 47.1% reflects this. Like unit tests in code, designing mid-task <strong>verification checkpoints</strong> and dynamically determining replanning frequency are promising directions.</p>
+<p>Third, <strong>real-time world models</strong>. Current VLAs are reactive — they act immediately from current observations. An internal world model predicting "what happens if I grasp this object this way?" in real time does not yet exist. GR00T N1's dual-system hints at this direction, but both prediction accuracy and speed are insufficient.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch07.html" class="prev">&larr; Ch.7</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch09.html" class="next">Ch.9 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch8-ref-1" value="1">Liu, Z. et al., "REFLECT: Summarizing Robot Experiences for Failure Explanation and Correction," arXiv:2306.15724, 2023.</li>
+  <li id="ch8-ref-2" value="2">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch8-ref-3" value="3">Shah, M. et al., "BUMBLE: Unifying Reasoning and Acting with Vision-Language Models for Building-wide Mobile Manipulation," arXiv:2410.06237, 2024.</li>
+  <li id="ch8-ref-4" value="4">PragmaBot, "Learning to Plan and Act by Experiencing in the Real World," arXiv:2507.16713, 2025.</li>
+  <li id="ch8-ref-5" value="5">Wang, Z. et al., "KARMA: Augmenting Embodied AI Agents with Long-and-short Term Memory Systems," arXiv:2409.14908, 2024.</li>
+  <li id="ch8-ref-6" value="6">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch8-ref-7" value="7">Ahn, M. et al., "Do As I Can, Not As I Say: Grounding Language in Robotic Affordances," arXiv:2204.01691, 2022.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch07.html" class="prev">&larr; Ch.7</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch09.html" class="next">Ch.9 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

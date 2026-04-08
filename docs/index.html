@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>From LLM Planners to Agentic Robotics</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    (function() {
+      var lang = localStorage.getItem('preferred-lang');
+      if (lang === 'en') { window.location.replace('en/'); return; }
+      if (lang === 'ko') { window.location.replace('ko/'); return; }
+      var browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+      if (browserLang.startsWith('ko')) {
+        localStorage.setItem('preferred-lang', 'ko');
+        window.location.replace('ko/');
+      } else {
+        localStorage.setItem('preferred-lang', 'en');
+        window.location.replace('en/');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+
+  <main class="lang-landing">
+    <h1 class="gradient-text">From LLM Planners to Agentic Robotics</h1>
+    <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; text-align: center; line-height: 1.8;">
+      The Future of Physical AI &mdash; Tracing the evolution from LLM-based planning through VLA to agentic robotics
+    </p>
+
+    <div class="lang-options">
+      <a href="ko/" class="lang-option">
+        <span class="lang-flag">&#x1F1F0;&#x1F1F7;</span>
+        <span class="lang-name">&#xD55C;&#xAD6D;&#xC5B4;</span>
+        <span class="lang-sub">Korean</span>
+      </a>
+      <a href="en/" class="lang-option">
+        <span class="lang-flag">&#x1F1FA;&#x1F1F8;</span>
+        <span class="lang-name">English</span>
+        <span class="lang-sub">English</span>
+      </a>
+    </div>
+  </main>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

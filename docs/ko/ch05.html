@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 5: 계층적 계획 — 고수준에서 저수준으로</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-2">
+  <nav class="sidebar-nav part-2">
+    <a class="nav-dot active" data-section="sec-요약">
+      <span class="dot"></span>
+      <span class="label">요약</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-1">
+      <span class="dot"></span>
+      <span class="label">5.1 도입: 왜 계층이 필요한가</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-2">
+      <span class="dot"></span>
+      <span class="label">5.2 AutoTAMP: 형식 검증의 경로</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-3">
+      <span class="dot"></span>
+      <span class="label">5.3 RT-H: 언어를 중간 표현으로</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-4">
+      <span class="dot"></span>
+      <span class="label">5.4 Hi Robot: 인간 의도와의 정렬</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-5">
+      <span class="dot"></span>
+      <span class="label">5.5 HAMSTER: Off-Domain 데이터의 활용</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-6">
+      <span class="dot"></span>
+      <span class="label">5.6 계층적 분리의 네 가지 형태</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-7">
+      <span class="dot"></span>
+      <span class="label">5.7 Agentic Coding과의 대비: 추상화의 자연스러움</span>
+    </a>
+    <a class="nav-dot" data-section="sec-5-8">
+      <span class="dot"></span>
+      <span class="label">5.8 미해결 문제와 전망</span>
+    </a>
+    <a class="nav-dot" data-section="sec-참고문헌">
+      <span class="dot"></span>
+      <span class="label">참고문헌</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part II: VLA 혁명</span>
+        <h1>Chapter 5: 계층적 계획 — 고수준에서 저수준으로</h1>
+        <div class="chapter-meta">
+          <span>집필일: 2026-04-08</span>
+          <span>최종수정일: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-요약" class="content-section">
+<h2>요약</h2>
+<p>"샌드위치를 만들어"라는 지시와 관절 토크 명령 사이에는 거대한 추상화 간극이 있습니다. LLM Planner는 고수준 계획에 능하지만 정밀한 모터 제어를 할 수 없고, VLA는 행동을 직접 출력하지만 복잡한 추론이 어렵습니다. 이 챕터는 이 두 세계를 계층적으로 연결하는 네 가지 접근을 다룹니다: 형식 명세 경유(AutoTAMP), 언어 모션 경유(RT-H), 실시간 피드백 통합(Hi Robot), off-domain 데이터 활용(HAMSTER).</p>
+</section>
+<section id="sec-5-1" class="content-section">
+<h2>5.1 도입: 왜 계층이 필요한가</h2>
+<p>Agentic Coding에서는 계층적 추상화가 자연스럽습니다. "버그를 수정해"라는 지시를 받으면, 에이전트는 먼저 관련 파일을 탐색하고(고수준), 특정 함수를 식별하고(중수준), 코드를 편집합니다(저수준). 각 수준의 행동은 이산적이고 해석 가능하며, IDE의 자동완성이 저수준 세부사항을 처리합니다.</p>
+<p>로봇에서는 이 계층이 자명하지 않습니다. "컵을 잡아"라는 고수준 지시에서 7자유도 관절의 연속적 토크 명령까지의 거리가 코딩에서보다 훨씬 멉니다. 그리고 중간 표현을 무엇으로 설정할 것인가 — 형식 논리? 자연어 모션? 2D 경로? 원자적 명령? — 가 핵심 설계 결정입니다.</p>
+<p>모든 계층적 접근이 공통으로 지적하는 이유는 다섯 가지입니다: (1) 추상화 수준 불일치, (2) 데이터 효율 (고수준과 저수준을 각각 적합한 데이터로 학습 가능), (3) off-domain 데이터 활용, (4) 인간 개입 용이성, (5) 디버깅과 해석 가능성.</p>
+</section>
+<section id="sec-5-2" class="content-section">
+<h2>5.2 AutoTAMP: 형식 검증의 경로</h2>
+<p>[Chen et al., 2023]의 AutoTAMP은 LLM을 직접적인 플래너가 아니라 자연어 → 형식 명세(Signal Temporal Logic 등) <strong>번역기</strong>이자 <strong>검증기</strong>로 사용합니다. "LLM을 플래너 그 자체보다 플래너의 전처리기+검증기로 쓰는 편이 낫다"는 핵심 통찰입니다.</p>
+<p>LLM이 자연어 작업 기술을 STL 같은 형식 표현으로 번역하면, 전통적 TAMP 알고리즘이 이를 소비하여 작업+경로 계획을 수행합니다. <strong>Autoregressive Re-prompting</strong>이 구문적 오류와 의미적 오류를 자동 감지·수정합니다.</p>
+<p>결과는 강력했습니다. GPT-4 + AutoTAMP은 단일 에이전트에서 82.5~87.7%, 다중 에이전트(전체 AutoTAMP)에서 100% 성공률을 달성했습니다. 직접 LLM 계획 대비 기하학적·시간적 제약이 있는 작업에서 유의미한 우위를 보였습니다.</p>
+<p>한계는 2D 환경에 한정된 평가와 STL의 표현력 제한입니다. 그러나 AutoTAMP의 핵심 아이디어 — "LLM은 번역기, 전통적 방법은 실행기" — 는 Code-as-Symbolic-Planner [Chen et al., 2025]에서 직접 계승되었습니다 (<a href="ch03.html">Chapter 3</a>).</p>
+</section>
+<section id="sec-5-3" class="content-section">
+<h2>5.3 RT-H: 언어를 중간 표현으로</h2>
+<p>[Belkhale et al., 2024]의 RT-H는 완전히 다른 중간 표현을 제안합니다: <strong>language motion</strong>. "move arm forward", "close gripper" 같은 세밀한 언어 기술이 고수준 작업과 저수준 행동 사이를 연결합니다.</p>
+<p>이 접근의 핵심 통찰은 의미적으로 다른 작업들이 저수준에서 유사한 모션을 공유할 수 있다는 것입니다. "컵을 잡아"와 "병을 따"는 완전히 다른 작업이지만, "앞으로 팔을 뻗어"라는 저수준 모션은 공유됩니다. Language motion이 이 공유 구조를 명시적으로 드러내면 데이터 효율이 향상됩니다.</p>
+<p>더불어 RT-H는 <strong>실행 중 인간 교정</strong>을 가능하게 합니다. 사용자가 language motion 수준에서 로봇 행동을 실시간 수정할 수 있습니다. "그거 말고 왼쪽으로" 같은 교정이 자연스럽게 통합됩니다.</p>
+</section>
+<section id="sec-5-4" class="content-section">
+<h2>5.4 Hi Robot: 인간 의도와의 정렬</h2>
+<p>[Shi et al., 2025]의 Hi Robot는 계층적 VLA에 <strong>인간 피드백 실시간 통합</strong>을 더합니다. 고수준 VLM이 현재 관찰과 사용자 발화를 해석하여 원자적 명령("grasp the cup")을 생성하고, 저수준 policy가 이를 실행합니다.</p>
+<p>Hi Robot의 핵심 기여는 "그거 말고"와 같은 사용자 교정에 실시간으로 대응하는 것입니다. 단일팔, 양팔, 모바일 플랫폼에서 테이블 정리, 샌드위치 만들기, 장보기 같은 시나리오 기반 작업을 평가했으며, API-based VLM 및 flat VLA 대비 인간 의도 정렬과 작업 성공률 모두 우수했습니다.</p>
+<p>한계는 VLM 추론 지연이 실시간 반응에 영향을 미치고, 원자적 명령의 범위가 사전 정의된 스킬에 의존한다는 점입니다.</p>
+</section>
+<section id="sec-5-5" class="content-section">
+<h2>5.5 HAMSTER: Off-Domain 데이터의 활용</h2>
+<p>[Li et al., 2025]의 HAMSTER은 계층적 분리가 단순히 추상화를 위한 것이 아니라, <strong>off-domain 데이터 활용</strong>을 가능하게 한다는 핵심 메시지를 전달합니다.</p>
+<p>고수준 VLM이 RGB 이미지와 작업 기술에서 2D end-effector 경로(coarse path)를 예측하고, 저수준 3D-aware policy가 이 경로를 따라 정밀 조작을 수행합니다. 핵심은 고수준 VLM을 <strong>행동 없는 비디오, 손 그림 스케치, 시뮬레이션 데이터</strong>로도 파인튜닝할 수 있다는 것입니다. 비싼 로봇 데이터 대신 저렴한 대안을 활용하는 실용적 경로입니다.</p>
+<p>실제 로봇에서 OpenVLA 대비 평균 +20% 성공률(7개 일반화 축), 50% 상대적 향상을 달성했습니다. Off-domain 데이터가 embodiment, dynamics, 시각적 외관, 작업 의미의 도메인 간 간극을 극복할 수 있음을 입증했습니다.</p>
+</section>
+<section id="sec-5-6" class="content-section">
+<h2>5.6 계층적 분리의 네 가지 형태</h2>
+<p>네 논문의 접근을 비교하면:</p>
+<table class="styled-table">
+<thead><tr>
+<th>형태</th>
+<th>고수준</th>
+<th>중간 표현</th>
+<th>저수준</th>
+<th>핵심 강점</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>형식 명세 경유</strong> (AutoTAMP)</td>
+<td>LLM → STL/PDDL</td>
+<td>형식 논리</td>
+<td>TAMP solver</td>
+<td>검증 가능성</td>
+</tr>
+<tr>
+<td><strong>언어 모션 경유</strong> (RT-H)</td>
+<td>작업 지시</td>
+<td>Language motion</td>
+<td>행동 출력</td>
+<td>데이터 효율, 인간 교정</td>
+</tr>
+<tr>
+<td><strong>원자적 명령 경유</strong> (Hi Robot)</td>
+<td>VLM → atomic cmd</td>
+<td>원자적 명령</td>
+<td>Low-level policy</td>
+<td>실시간 인간 피드백</td>
+</tr>
+<tr>
+<td><strong>2D 경로 경유</strong> (HAMSTER)</td>
+<td>VLM → 2D path</td>
+<td>2D 경로</td>
+<td>3D-aware policy</td>
+<td>Off-domain 데이터 활용</td>
+</tr>
+</tbody></table>
+<p>GR00T N1의 Dual-System Architecture (<a href="ch04.html">Chapter 4</a>)는 이 계층적 분리를 <strong>아키텍처 수준에서 구현</strong>한 것입니다. System 2 (VLM) ≈ Hi Robot/HAMSTER의 고수준, System 1 (Diffusion Transformer) ≈ 저수준 policy.</p>
+</section>
+<section id="sec-5-7" class="content-section">
+<h2>5.7 Agentic Coding과의 대비: 추상화의 자연스러움</h2>
+<p>계층적 분리가 로봇에서 왜 이렇게 어렵고, Agentic Coding에서는 왜 자연스러운지를 이해하면 근본적 차이가 드러납니다.</p>
+<p>Agentic Coding에서 추상화 계층은 <strong>프로그래밍 언어에 내재</strong>되어 있습니다. 함수, 클래스, 모듈, 패키지 — 각 수준의 추상화가 언어 설계에 녹아 있고, IDE의 자동완성이 계층 간 전환을 매끄럽게 합니다. 고수준 의도("HTTP 서버를 만들어")에서 저수준 구현(<code>socket.bind()</code>)까지의 경로가 프레임워크와 라이브러리로 잘 포장되어 있습니다.</p>
+<p>로봇에서는 이 추상화가 <strong>수동 설계</strong>되어야 합니다. RT-H의 language motion, HAMSTER의 2D 경로, Hi Robot의 원자적 명령 — 각각이 연구자가 설계한 중간 표현입니다. CaP-X가 발견한 "human-crafted abstraction에 대한 의존성" (<a href="ch03.html">Chapter 3</a>)은 정확히 이 문제를 가리킵니다.</p>
+<p>AutoTAMP의 형식 검증 접근은 특히 흥미롭습니다. "LLM이 코드를 생성하고 린터/컴파일러/테스트가 검증한다"는 Agentic Coding의 패턴과 "LLM이 형식 명세를 생성하고 TAMP solver가 검증한다"는 AutoTAMP의 패턴은 구조적으로 동일합니다. 차이점은 코드의 형식 검증은 성숙한 도구체인(타입 체커, 린터, 테스트 프레임워크)이 있지만, 로봇 TAMP의 형식 검증은 아직 초기 단계라는 것입니다.</p>
+</section>
+<section id="sec-5-8" class="content-section">
+<h2>5.8 미해결 문제와 전망</h2>
+<p>계층적 접근의 가장 근본적인 미해결 문제는 <strong>최적의 계층 수와 중간 표현의 결정</strong>입니다. 현재는 2-3 계층이 주류이지만, 복잡한 long-horizon 작업에서 더 많은 계층이 필요할 수 있습니다. 그리고 중간 표현(언어? 코드? 2D 경로? 형식 논리?)의 최적 선택은 작업과 환경에 의존할 수 있습니다.</p>
+<p>두 번째 문제는 <strong>계층 간 정보 손실</strong>입니다. 고수준에서 저수준으로 정보가 전달될 때 추상화로 인한 손실이 불가피합니다. Hi Robot에서 VLM 추론 지연이 시스템 성능의 병목이 되는 것처럼, 계층 간 인터페이스 설계가 전체 시스템 성능을 결정합니다.</p>
+<p>세 번째는 <strong>자율적 계층 구축</strong>입니다. 현재 모든 계층 구조는 인간이 설계합니다. CaP-X의 통찰 — 에이전틱 스캐폴딩이 human-crafted abstraction을 대체할 수 있다 — 을 계층적 접근에 적용하면, 로봇이 경험을 통해 스스로 추상화 계층을 발견하는 방향이 열립니다. 이것은 아직 탐색되지 않은 연구 방향입니다.</p>
+<p>유망한 수렴 방향은 <strong>코드 기반 계층적 계획</strong>입니다. Code-as-Symbolic-Planner의 "코드가 solver/planner/checker 역할을 한다"는 접근과, HAMSTER/Hi Robot의 "VLM이 고수준, policy가 저수준"이라는 구조가 결합되면, 코드가 검증 가능한 중간 표현으로서 계층 간 정보 전달과 검증을 동시에 수행할 수 있습니다.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch04.html" class="prev">&larr; Ch.4</a>
+        <a href="./" class="toc-link">목록</a>
+        <a href="ch06.html" class="next">Ch.6 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>참고문헌</h2>
+<ol class="references-list">
+  <li id="ch5-ref-1" value="1">Chen, Y. et al., "AutoTAMP: Autoregressive Task and Motion Planning with LLMs as Translators and Checkers," arXiv:2306.06531, 2023.</li>
+  <li id="ch5-ref-2" value="2">Belkhale, S. et al., "RT-H: Action Hierarchies Using Language," arXiv:2403.01823, 2024.</li>
+  <li id="ch5-ref-3" value="3">Shi, L. X. et al., "Hi Robot: Open-Ended Instruction Following with Hierarchical Vision-Language-Action Models," arXiv:2502.19417, 2025.</li>
+  <li id="ch5-ref-4" value="4">Li, J. et al., "HAMSTER: Hierarchical Action Models for Open-World Robot Manipulation," arXiv:2502.05485, 2025.</li>
+  <li id="ch5-ref-5" value="5">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch5-ref-6" value="6">Chen, Y. et al., "Code-as-Symbolic-Planner: Leveraging Code Generation for Task and Motion Planning," arXiv:2503.01700, 2025.</li>
+  <li id="ch5-ref-7" value="7">Kim, M. J. et al., "OpenVLA: An Open-Source Vision-Language-Action Model," arXiv:2406.09246, 2024.</li>
+  <li id="ch5-ref-8" value="8">Fu, M. et al., "CaP-X: Benchmarking Coding Agents for Robot Manipulation," arXiv:2603.22435, 2026.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch04.html" class="prev">&larr; Ch.4</a>
+        <a href="./" class="toc-link">목록</a>
+        <a href="ch06.html" class="next">Ch.6 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

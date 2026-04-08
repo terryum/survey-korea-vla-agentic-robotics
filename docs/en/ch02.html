@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 2: LLM as Planner — Zero-Shot Planning and Grounding</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-1">
+  <nav class="sidebar-nav part-1">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-1">
+      <span class="dot"></span>
+      <span class="label">2.1 Introduction: The Discovery of ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-2">
+      <span class="dot"></span>
+      <span class="label">2.2 Language Models as Zero-Shot Pl...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-3">
+      <span class="dot"></span>
+      <span class="label">2.3 SayCan: Grounding in the Physic...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-4">
+      <span class="dot"></span>
+      <span class="label">2.4 SayPlan: Structuring the Enviro...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-5">
+      <span class="dot"></span>
+      <span class="label">2.5 The Evolutionary Arc: From Gene...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-6">
+      <span class="dot"></span>
+      <span class="label">2.6 Comparison with Agentic Coding:...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-2-7">
+      <span class="dot"></span>
+      <span class="label">2.7 Open Problems and Outlook</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part I: Foundations — LLM Meets Robotics</span>
+        <h1>Chapter 2: LLM as Planner — Zero-Shot Planning and Grounding</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>In 2022, pretrained LLMs were shown to serve as high-level planners for robots. This transition progressed through three stages — generation, grounding, and structuring — each precisely targeting the limitations of its predecessor. However, the fundamental inadequacy of text-only control for the physical world became clear, triggering two successor paradigms: Code as Policy and VLA.</p>
+</section>
+<section id="sec-2-1" class="content-section">
+<h2>2.1 Introduction: The Discovery of World Knowledge in LLMs</h2>
+<p>In early 2022, researchers made a striking discovery. LLMs trained on internet text could decompose instructions like "make breakfast" into action sequences such as "open fridge, take out milk, close fridge, ..." This capability was not explicitly trained but emerged from "world knowledge" implicitly encoded in internet text.</p>
+<p>This discovery transformed robot planning. Previously, experts had to manually design formal planning systems like PDDL or behavior trees. Each new task required new planning logic, creating a fundamental bottleneck for general-purpose robotics. LLMs showed the potential to bypass this bottleneck entirely.</p>
+<p>Yet the question "can LLMs plan?" quickly evolved into the harder question: "can those plans actually be executed in the physical world?" The trajectory of that evolution is the central thread of this chapter.</p>
+</section>
+<section id="sec-2-2" class="content-section">
+<h2>2.2 Language Models as Zero-Shot Planners: The Starting Point</h2>
+<p>[Huang et al., 2022] is the origin point for LLM-based robot planning. In the VirtualHome environment, GPT-3 was shown to generate executable action sequences from instructions like "make breakfast" in a zero-shot manner.</p>
+<p>Three key techniques were introduced. <strong>Admissible Action Parsing</strong> semantically maps the LLM's free-form output to the environment's set of permissible actions. <strong>Autoregressive Trajectory Correction</strong> uses the outcome of previous actions as feedback to autoregressively correct subsequent actions. <strong>Dynamic Example Selection</strong> dynamically selects the most similar examples for few-shot prompting.</p>
+<p>The results were both encouraging and revealing. Executability improved dramatically from 18% to 79%, but semantic correctness remained at just 32.87% (LCS metric). Executable but incorrect plans — this previewed the fundamental dilemma of LLM planners.</p>
+<p>The most critical limitation was the <strong>absence of grounding</strong>. The LLM could not observe the current state of the physical environment. It might plan "take milk from the fridge" when no milk exists. Unlike code agents that can instantly read the file system, this observation-action gap was the first clear evidence of a fundamental challenge in physical planning.</p>
+</section>
+<section id="sec-2-3" class="content-section">
+<h2>2.3 SayCan: Grounding in the Physical World</h2>
+<p>SayCan [Ahn et al., 2022] directly attacked the grounding problem by combining the LLM's semantic knowledge ("Say") with a robot affordance function ("Can").</p>
+<p>The core idea is a product of probabilities:</p>
+<div class="math-block">P(\text{action} \mid \text{instruction}) = P_{\text{LLM}}(\text{useful} \mid \text{instruction, action}) \times P_{\text{affordance}}(\text{feasible} \mid \text{state, action})</div>
+<p>The LLM scores each skill's usefulness for the task, while the affordance function scores each skill's feasibility in the current environment. The action with the highest combined score is selected from a library of 551 pretrained robot skills.</p>
+<p>Evaluated on 101 tasks in a real kitchen environment, SayCan with PaLM 540B achieved 84% planning success and 74% execution success, reducing the error rate by 50% compared to FLAN. It successfully executed tasks requiring up to 8 steps, including contextual requests like "I spilled coke on the table, how can you help me clean it up?"</p>
+<p>The "Say + Can" paradigm became the standard framework for subsequent research. It is the direct ancestor of Google's robot foundation model lineage — RT-1, RT-2, PaLM-E — and was scaled to fleet management with AutoRT (2024) (see Chapter 8).</p>
+<p>However, SayCan's limitations were also clear: a <strong>closed skill set</strong> of 551 skills requiring additional training to extend, <strong>static affordances</strong> that could not reflect real-time environmental changes, and <strong>limited replanning</strong> upon failure. The contrast with Agentic Coding is stark — adding a new tool requires only a tool description, not retraining.</p>
+</section>
+<section id="sec-2-4" class="content-section">
+<h2>2.4 SayPlan: Structuring the Environment Representation</h2>
+<p>SayPlan [Rana et al., 2023] directly targeted SayCan's scale limitations. Its key insight: <strong>the environment representation determines the scale of LLM planning</strong>.</p>
+<p>SayPlan exploits the hierarchical structure of 3D Scene Graphs (3DSG) — building, floor, room, object. Rather than feeding the entire graph to the LLM, it performs <strong>Hierarchical Semantic Search</strong>, selectively expanding only the task-relevant subgraph. Integration with a classical path planner reduces the LLM's planning horizon, and an <strong>Iterative Replanning Pipeline</strong> corrects infeasible actions.</p>
+<p>The results were impressive: successful long-horizon task planning in a 3-floor building with 36 rooms and 140+ objects. Iterative replanning corrected most hallucination errors, though 6.67% of tasks retained uncorrectable hallucinated nodes.</p>
+<p>SayPlan's most important legacy is establishing the <strong>scene graph + LLM planning</strong> combination. This combination feeds directly into KARMA's long-term memory system [Wang et al., 2024], Embodied-RAG's spatial-semantic retrieval [Xie et al., 2024], and VeriGraph's execution verification [Ekpo et al., 2024] (see Chapter 7).</p>
+</section>
+<section id="sec-2-5" class="content-section">
+<h2>2.5 The Evolutionary Arc: From Generation to Structure</h2>
+<p>The evolutionary trajectory across these three papers is clear:</p>
+<table class="styled-table">
+<thead><tr>
+<th>Stage</th>
+<th>Key Achievement</th>
+<th>Remaining Limitation</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Generation</strong> (LLM as Planners)</td>
+<td>LLMs can generate plans</td>
+<td>Not grounded in physical world</td>
+</tr>
+<tr>
+<td><strong>Grounding</strong> (SayCan)</td>
+<td>Affordances provide grounding</td>
+<td>Limited space, static environment</td>
+</tr>
+<tr>
+<td><strong>Structuring</strong> (SayPlan)</td>
+<td>Scene graphs enable scaling</td>
+<td>No dynamic environment tracking, residual hallucination</td>
+</tr>
+</tbody></table>
+<p>Each stage precisely resolved its predecessor's core limitation while exposing new ones. The challenges that all three stages left unresolved triggered subsequent research directions:</p>
+<ul>
+<li>"What if plans were expressed as code?" — Code as Policy (see Chapter 3)</li>
+<li>"What if the LLM directly output actions?" — VLA (see Chapter 4)</li>
+<li>"What if high-level planning and low-level control were separated?" — Hierarchical Planning (see Chapter 5)</li>
+<li>"What if we could remember dynamic environments?" — Memory & Scene Graph (see Chapter 7)</li>
+<li>"What if we could detect and recover from failures?" — Agentic Systems (see Chapter 8)</li>
+</ul>
+</section>
+<section id="sec-2-6" class="content-section">
+<h2>2.6 Comparison with Agentic Coding: The Determinism of Tool Calls</h2>
+<p>The core problem these three papers wrestle with is <strong>grounding</strong> — connecting LLM plans to the physical world. Examining why this problem does not arise in Agentic Coding reveals the fundamental difference.</p>
+<p>When an LLM in Agentic Coding plans "read the file," the command <code>cat file.txt</code> executes instantly, deterministically, and completely. Tool availability is verifiable through API documentation or type signatures, and results are immediately returned as text. <strong>Tool calls are deterministic</strong> — that is the key.</p>
+<p>In SayCan, whether a robot skill can be executed depends on the physical environment state and requires a separately trained affordance model. The same "pick up cup" skill has varying success probabilities depending on the cup's position, orientation, and surface properties. <strong>Tool calls are stochastic</strong>. SayPlan's introduction of 3D scene graphs is structurally similar to drilling down from <code>tree</code> to a specific file to a specific function in a codebase, but constructing and maintaining a physical scene graph is expensive and requires constant updates.</p>
+<p>This difference is not merely technical. The determinism of digital tool calls enables infinite "try, fail, retry" iterations. The stochasticity of physical execution means each attempt carries cost and risk, requiring "estimate success probability before trying." SayCan's affordance scoring was the first attempt at precisely this estimation.</p>
+</section>
+<section id="sec-2-7" class="content-section">
+<h2>2.7 Open Problems and Outlook</h2>
+<p>The LLM Planner paradigm leaves three fundamental open problems.</p>
+<p>First, <strong>the absence of closed-loop replanning</strong>. None of the three papers offer robust recovery from execution failures. SayPlan's iterative replanning is the most advanced attempt, but it does not address physical execution failures. This challenge is taken up by REFLECT [Liu et al., 2023] and BUMBLE [Shah et al., 2024] (see Chapter 8).</p>
+<p>Second, <strong>dynamic environment tracking</strong>. All three papers assume static or quasi-static environments. There is no mechanism to detect and incorporate changes made by other people or robots. KARMA's short-term memory system [Wang et al., 2024] represents the first step in this direction (see Chapter 7).</p>
+<p>Third, <strong>complete hallucination elimination</strong>. SayPlan's residual 6.67% hallucination rate reveals an inherent limitation of LLM-based planning. AutoTAMP's formal verification [Chen et al., 2023] and VeriGraph's scene-graph-based verification [Ekpo et al., 2024] address this but do not achieve complete solutions (see Chapters 5 and 7).</p>
+<p>The conclusion of a recent survey [2025] is clear: LLMs are inadequate as standalone planners but powerful when combined with traditional planning methods. The hybrid approach — combining LLM flexibility with the rigor of classical planning — is the most promising direction, explored further in the hierarchical planning of Chapter 5.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch01.html" class="prev">&larr; Ch.1</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch03.html" class="next">Ch.3 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch2-ref-1" value="1">Huang, W. et al., "Language Models as Zero-Shot Planners: Extracting Actionable Knowledge for Embodied Agents," arXiv:2201.07207, 2022.</li>
+  <li id="ch2-ref-2" value="2">Ahn, M. et al., "Do As I Can, Not As I Say: Grounding Language in Robotic Affordances," arXiv:2204.01691, 2022.</li>
+  <li id="ch2-ref-3" value="3">Rana, K. et al., "SayPlan: Grounding Large Language Models using 3D Scene Graphs for Scalable Robot Task Planning," arXiv:2307.06135, 2023.</li>
+  <li id="ch2-ref-4" value="4">Liu, Z. et al., "REFLECT: Summarizing Robot Experiences for Failure Explanation and Correction," arXiv:2306.15724, 2023.</li>
+  <li id="ch2-ref-5" value="5">Wang, Z. et al., "KARMA: Augmenting Embodied AI Agents with Long-and-short Term Memory Systems," arXiv:2409.14908, 2024.</li>
+  <li id="ch2-ref-6" value="6">Xie, Q. et al., "Embodied-RAG: General Non-parametric Embodied Memory for Retrieval and Generation," arXiv:2409.18313, 2024.</li>
+  <li id="ch2-ref-7" value="7">Ekpo, D. et al., "VeriGraph: Scene Graphs for Execution Verifiable Robot Planning," arXiv:2411.10446, 2024.</li>
+  <li id="ch2-ref-8" value="8">Chen, Y. et al., "AutoTAMP: Autoregressive Task and Motion Planning with LLMs as Translators and Checkers," arXiv:2306.06531, 2023.</li>
+  <li id="ch2-ref-9" value="9">Shah, M. et al., "BUMBLE: Unifying Reasoning and Acting with Vision-Language Models for Building-wide Mobile Manipulation," arXiv:2410.06237, 2024.</li>
+  <li id="ch2-ref-10" value="10">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch2-ref-11" value="11">Survey, "A Survey on Large Language Models for Automated Planning," arXiv:2502.12435, 2025.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch01.html" class="prev">&larr; Ch.1</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch03.html" class="next">Ch.3 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

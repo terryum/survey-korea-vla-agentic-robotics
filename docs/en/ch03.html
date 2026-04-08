@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 3: Code as Policies — Programming Robot Control</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-1">
+  <nav class="sidebar-nav part-1">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-3-1">
+      <span class="dot"></span>
+      <span class="label">3.1 Introduction: Why Code</span>
+    </a>
+    <a class="nav-dot" data-section="sec-3-2">
+      <span class="dot"></span>
+      <span class="label">3.2 Code as Policies: Naming the Pa...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-3-3">
+      <span class="dot"></span>
+      <span class="label">3.3 Code-as-Symbolic-Planner: Code ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-3-4">
+      <span class="dot"></span>
+      <span class="label">3.4 CaP-X: When Coding Agents Meet ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-3-5">
+      <span class="dot"></span>
+      <span class="label">3.5 Code, Natural Language, and Dir...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-3-6">
+      <span class="dot"></span>
+      <span class="label">3.6 Comparison with Agentic Coding:...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-3-7">
+      <span class="dot"></span>
+      <span class="label">3.7 Open Problems and Outlook</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part I: Foundations — LLM Meets Robotics</span>
+        <h1>Chapter 3: Code as Policies — Programming Robot Control</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>When the limitations of natural language planning became apparent, researchers turned to code. Code offers precise numerical specification, control flow, third-party library access, and executability. Since Code as Policies (2022) named and established this paradigm, it has evolved from "code as API glue" to "code as reasoning tool" to "agentic code systems." This trajectory is the robotic paradigm most directly analogous to Agentic Coding.</p>
+</section>
+<section id="sec-3-1" class="content-section">
+<h2>3.1 Introduction: Why Code</h2>
+<p>The LLM Planners of Chapter 2 output natural language. "Place the cup on the left side of the table" is intuitive for humans but ambiguous for robots. Where exactly is "the left side"? How many centimeters from the table edge? At what angle should the cup be placed?</p>
+<p>Code eliminates this ambiguity. <code>place(cup, position=(0.3, -0.1, 0.8), orientation=(0, 0, 0))</code> specifies exact values. Conditionals (<code>if obj.color == "red"</code>) and loops (<code>for obj in objects</code>) express control flow. Libraries like NumPy and Shapely perform spatial-geometric reasoning. And critically, code can be <strong>executed and its results observed</strong>.</p>
+<p>This insight is the core of the Code as Policies paradigm, and simultaneously the point where Agentic Coding and Agentic Robotics come closest together.</p>
+</section>
+<section id="sec-3-2" class="content-section">
+<h2>3.2 Code as Policies: Naming the Paradigm</h2>
+<p>CaP [Liang et al., 2022] established the paradigm of using LLMs to directly generate robot policy code from natural language commands. Given few-shot examples pairing natural language commands with corresponding policy code, the LLM generates code that processes object detector outputs and parameterizes control primitive APIs for new commands.</p>
+<p>The key design principle is <strong>hierarchical code generation</strong> — decomposing complex tasks into function call hierarchies, maintaining appropriate abstraction at each level. The system also references third-party libraries like NumPy and Shapely for spatial-geometric reasoning.</p>
+<p>On seen instructions and attributes in simulation, CaP achieved over 90% success rate and outperformed supervised IL baselines on unseen instructions. Real robot demonstrations included mobile robot kitchen navigation, robotic arm shape drawing, pick-and-place, and tabletop manipulation.</p>
+<p>CaP's limitations were also clear. <strong>Abstraction level mismatch</strong> — performance degraded when new commands differed in abstraction level from the prompt examples. <strong>No error recovery</strong> — there was no automatic correction mechanism when generated code failed at execution. <strong>API dependency</strong> — perception and control primitive APIs had to be pre-designed. All three limitations reduce to the same root cause: the absence of an agentic loop. Code was generated, but there was no loop to observe execution results and iterate.</p>
+</section>
+<section id="sec-3-3" class="content-section">
+<h2>3.3 Code-as-Symbolic-Planner: Code That Reasons</h2>
+<p>[Chen et al., 2025] extended CaP's "code as API calls" to "code as reasoning tool." Instead of using code as mere glue between APIs, LLMs are guided to use code as a <strong>solver, planner, and checker</strong>.</p>
+<p>The core idea combines text-based reasoning (common sense) with code generation (symbolic computing). The LLM generates optimization code to solve constrained planning problems, and the generated code also serves as a constraint checker, forming a self-verification loop.</p>
+<p>The result was a 24.1% average improvement in success rate over the best baseline, with particularly strong scalability on high-complexity tasks. This converges with AutoTAMP's [Chen et al., 2023] idea of "using the LLM as translator and checker" (see Chapter 5).</p>
+<p>This evolution is already routine in Agentic Coding. When an LLM generates a regex to validate a pattern or writes a script to analyze data, it is using "code as a tool for thought." Code-as-Symbolic-Planner applies this same pattern to robot TAMP.</p>
+</section>
+<section id="sec-3-4" class="content-section">
+<h2>3.4 CaP-X: When Coding Agents Meet Robots</h2>
+<p>CaP-X [Fu et al., 2026] provides an open-source framework for systematically studying and benchmarking Code-as-Policy agents. It offers the most comprehensive evaluation framework in the field and serves as the most direct bridge between Agentic Coding and Agentic Robotics.</p>
+<p>CaP-X comprises four components:</p>
+<p><strong>CaP-Gym</strong> integrates 187 tasks from RoboSuite, LIBERO-PRO, BEHAVIOR, and other environments. <strong>CaP-Bench</strong> evaluates agents along three axes: abstraction level (human-crafted macros to atomic primitives), temporal interaction (zero-shot versus multi-turn), and perceptual grounding (visual feedback modality). <strong>CaP-Agent0</strong> achieves human-level reliability on multiple manipulation tasks without any training. <strong>CaP-RL</strong> improves success rates through RL with verifiable rewards.</p>
+<p>CaP-X's key finding from evaluating 12 models is among the most important insights in this field: <strong>performance scales with human-crafted abstraction, but drops sharply when these pre-defined abstractions are removed.</strong> Crucially, this gap can be <strong>closed through agentic scaffolding</strong> — multi-turn interaction, structured execution feedback, visual differencing, automatic skill synthesis, and ensembled reasoning recover performance even at the low-level primitive level.</p>
+</section>
+<section id="sec-3-5" class="content-section">
+<h2>3.5 Code, Natural Language, and Direct Actions: Three Approaches Compared</h2>
+<p>At this point, comparing three approaches to robot control is instructive.</p>
+<table class="styled-table">
+<thead><tr>
+<th>Dimension</th>
+<th>Code as Policy</th>
+<th>Natural Language</th>
+<th>VLA (Direct Action)</th>
+</tr></thead><tbody>
+<tr>
+<td>Precision</td>
+<td>High (numerical spec)</td>
+<td>Medium</td>
+<td>High (continuous)</td>
+</tr>
+<tr>
+<td>Generalization</td>
+<td>High (new API combos)</td>
+<td>High (language flexibility)</td>
+<td>Low (data-dependent)</td>
+</tr>
+<tr>
+<td>Interpretability</td>
+<td>Very high</td>
+<td>High</td>
+<td>Low</td>
+</tr>
+<tr>
+<td>Real-time response</td>
+<td>Low (generate + execute)</td>
+<td>Low</td>
+<td>High</td>
+</tr>
+<tr>
+<td>New environment adaptation</td>
+<td>Possible with API</td>
+<td>Possible with description</td>
+<td>Requires retraining</td>
+</tr>
+</tbody></table>
+<p>RL-GPT [2024] attempted a hybrid combination, proposing a two-tier hierarchical framework with a code-based "slow agent" and an RL-based "fast agent." Codeable high-level actions are handled through code, while actions requiring precise control use RL. In Minecraft, it achieved diamond acquisition within one day on a single RTX3090, but transfer to real robots was not validated.</p>
+<p>Natural Language as Policies (NLaP) [Mikami et al., 2024] explored the opposite direction — using natural language itself as coordinate-level control commands without code. It falls short of code-based approaches on precise control but probes the possibility of a code-free path.</p>
+</section>
+<section id="sec-3-6" class="content-section">
+<h2>3.6 Comparison with Agentic Coding: The Fundamental Difference in Execution Environment</h2>
+<p>Code as Policies is the robotic paradigm most directly analogous to Agentic Coding. Just as Claude Code generates Python/bash code, executes it, and observes the results, CaP has an LLM generate robot control code for execution. But beneath this structural similarity lies a fundamental difference.</p>
+<table class="styled-table">
+<thead><tr>
+<th>Dimension</th>
+<th>Agentic Coding</th>
+<th>Code as Policy (Robotics)</th>
+</tr></thead><tbody>
+<tr>
+<td>Execution environment</td>
+<td>Deterministic (computer)</td>
+<td>Stochastic (physical world)</td>
+</tr>
+<tr>
+<td>Error feedback</td>
+<td>Precise (stack traces)</td>
+<td>Ambiguous (sensor noise, partial observation)</td>
+</tr>
+<tr>
+<td>Execution cost</td>
+<td>Nearly free, instant</td>
+<td>High: time, energy, safety risk</td>
+</tr>
+<tr>
+<td>Reversibility</td>
+<td><code>git revert</code>, undo</td>
+<td>Irreversible (broken objects, collisions)</td>
+</tr>
+<tr>
+<td>API design</td>
+<td>Rich ecosystem</td>
+<td>Manual design required</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>Instant unit/integration tests</td>
+<td>Sim2real gap</td>
+</tr>
+</tbody></table>
+<p>CaP-X's key finding quantifies this difference precisely. <strong>Without human-crafted abstraction, performance drops sharply, but agentic scaffolding can close the gap.</strong> This same pattern appears in Agentic Coding: working with raw system calls instead of well-designed APIs is difficult, but an agent that iteratively tries and receives feedback can eventually solve the problem.</p>
+<p>The implication is profound. <strong>Agentic test-time computation can substitute for human-crafted abstraction.</strong> In the long run, instead of pre-designed APIs or skill libraries, agents might discover and build their own abstractions through iterative trial and error. The critical barrier is that the cost of this trial and error in the physical world exceeds that of the digital world by orders of magnitude.</p>
+</section>
+<section id="sec-3-7" class="content-section">
+<h2>3.7 Open Problems and Outlook</h2>
+<p>The central open problem for the Code as Policy paradigm is <strong>the physical cost of the agentic loop</strong>.</p>
+<p>In Agentic Coding, the code-generate, execute, analyze-error, fix loop runs in seconds and can be repeated virtually without limit. The agentic scaffolding CaP-X demonstrated fundamentally depends on this unlimited iteration. But in robot environments, each iteration incurs physical time (minutes), energy consumption, safety risks, and irreversible environmental changes.</p>
+<p>Three directions address this problem:</p>
+<p>First, <strong>agentic loops within simulation</strong>. As CaP-RL demonstrated, performing the agentic loop in simulation and transferring results to the real world is viable. The sim2real gap remains a bottleneck, but SIMPLER [Li et al., 2024] and Natural Language Sim2Real [2024] are narrowing it (see Chapter 9).</p>
+<p>Second, <strong>strengthening code-level verification</strong>. Code-as-Symbolic-Planner's approach of "code as checker" validates plan feasibility at the code level before physical execution. Combined with AutoTAMP's formal verification, this can filter out high-failure-probability plans in advance (see Chapter 5).</p>
+<p>Third, <strong>incremental abstraction construction</strong>. CaP-X's finding that "agentic scaffolding can substitute for human-crafted abstraction" suggests a path where robots build their own skill libraries through iterative experience. PragmaBot's [2025] experience-based learning represents an early step in this direction (see Chapter 8).</p>
+<p>Code as Policy is the most direct attempt to transplant Agentic Coding's success formula into robotics. For this transplant to be complete, designing an efficient agentic loop adapted to the cost structure of the physical world is essential.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch02.html" class="prev">&larr; Ch.2</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch04.html" class="next">Ch.4 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch3-ref-1" value="1">Liang, J. et al., "Code as Policies: Language Model Programs for Embodied Control," arXiv:2209.07753, 2022.</li>
+  <li id="ch3-ref-2" value="2">Chen, Y. et al., "Code-as-Symbolic-Planner: Leveraging Code Generation for Task and Motion Planning via Symbolic Computing," arXiv:2503.01700, 2025.</li>
+  <li id="ch3-ref-3" value="3">Fu, M. et al., "CaP-X: Benchmarking Coding Agents for Robot Manipulation," arXiv:2603.22435, 2026.</li>
+  <li id="ch3-ref-4" value="4">Chen, Y. et al., "AutoTAMP: Autoregressive Task and Motion Planning with LLMs as Translators and Checkers," arXiv:2306.06531, 2023.</li>
+  <li id="ch3-ref-5" value="5">Li, X. et al., "Evaluating Real-World Robot Manipulation Policies in Simulation (SIMPLER)," arXiv:2405.05941, 2024.</li>
+  <li id="ch3-ref-6" value="6">RL-GPT, "Integrating Reinforcement Learning and Code-as-Policy," arXiv:2402.19299, 2024.</li>
+  <li id="ch3-ref-7" value="7">Mikami, Y. et al., "Natural Language as Policies: Reasoning for Coordinate-Level Embodied Control with LLMs," arXiv:2403.13801, 2024.</li>
+  <li id="ch3-ref-8" value="8">Lang4Sim2Real, "Natural Language Can Help Bridge the Sim2Real Gap," arXiv:2405.10020, 2024.</li>
+  <li id="ch3-ref-9" value="9">Huang, W. et al., "Language Models as Zero-Shot Planners," arXiv:2201.07207, 2022.</li>
+  <li id="ch3-ref-10" value="10">Ahn, M. et al., "Do As I Can, Not As I Say: Grounding Language in Robotic Affordances," arXiv:2204.01691, 2022.</li>
+  <li id="ch3-ref-11" value="11">Chi, C. et al., "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion," arXiv:2303.04137, 2023.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch02.html" class="prev">&larr; Ch.2</a>
+        <a href="./" class="toc-link">Index</a>
+        <a href="ch04.html" class="next">Ch.4 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

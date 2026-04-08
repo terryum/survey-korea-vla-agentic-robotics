@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 6: 저수준 제어 — Diffusion Policy와 3D 표현</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-2">
+  <nav class="sidebar-nav part-2">
+    <a class="nav-dot active" data-section="sec-요약">
+      <span class="dot"></span>
+      <span class="label">요약</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-1">
+      <span class="dot"></span>
+      <span class="label">6.1 도입: 결정론적 실행과 확률적 정책 사이</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-2">
+      <span class="dot"></span>
+      <span class="label">6.2 Diffusion Policy: 확률적 행동 생성의 표준</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-3">
+      <span class="dot"></span>
+      <span class="label">6.3 3D Diffuser Actor: 3D 공간 인식의 통합</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-4">
+      <span class="dot"></span>
+      <span class="label">6.4 DROID: 대규모 In-the-Wild 데이터</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-5">
+      <span class="dot"></span>
+      <span class="label">6.5 저수준 제어의 설계 축</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-6">
+      <span class="dot"></span>
+      <span class="label">6.6 Agentic Coding과의 대비: 대응물이 없는 영역</span>
+    </a>
+    <a class="nav-dot" data-section="sec-6-7">
+      <span class="dot"></span>
+      <span class="label">6.7 미해결 문제와 전망</span>
+    </a>
+    <a class="nav-dot" data-section="sec-참고문헌">
+      <span class="dot"></span>
+      <span class="label">참고문헌</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Part II: VLA 혁명</span>
+        <h1>Chapter 6: 저수준 제어 — Diffusion Policy와 3D 표현</h1>
+        <div class="chapter-meta">
+          <span>집필일: 2026-04-08</span>
+          <span>최종수정일: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-요약" class="content-section">
+<h2>요약</h2>
+<p>고수준 계획이 "무엇을 할 것인가"를 결정한다면, 저수준 제어는 "어떻게 할 것인가"를 결정합니다. 이 챕터는 로봇 제어의 물리적 최전선을 다룹니다. Diffusion Policy가 확률적 행동 생성의 표준을 확립하고, 3D Diffuser Actor가 3D 공간 표현을 정책에 통합하며, DROID가 대규모 in-the-wild 데이터로 일반화의 기반을 구축한 과정을 추적합니다. 이 저수준은 Agentic Coding에 대응물이 없는 영역 — 물리 세계 고유의 도전입니다.</p>
+</section>
+<section id="sec-6-1" class="content-section">
+<h2>6.1 도입: 결정론적 실행과 확률적 정책 사이</h2>
+<p>Agentic Coding에서 "실행"은 결정론적입니다. <code>print("hello")</code>는 항상 "hello"를 출력합니다. 로봇에서 "컵을 잡아"의 실행은 확률적입니다. 같은 명령, 같은 초기 조건에서도 미세한 물리적 변동이 다른 결과를 낳습니다. 접촉 역학은 초기 조건에 민감한 chaotic dynamics를 따르며, 환경의 비정상성(온도, 습도, 마모)이 지속적으로 조건을 변화시킵니다.</p>
+<p>이 확률적 세계에서 제어 정책을 설계하는 것은 코드 작성과 근본적으로 다른 문제입니다. 정답이 하나가 아니라 여러 개일 수 있고(다봉 분포), 실패의 비용이 비가역적이며, 실시간(10-1000Hz) 응답이 요구됩니다.</p>
+</section>
+<section id="sec-6-2" class="content-section">
+<h2>6.2 Diffusion Policy: 확률적 행동 생성의 표준</h2>
+<p>[Chi et al., 2023]의 Diffusion Policy는 조건부 denoising diffusion 과정으로 로봇 행동을 생성하는 프레임워크입니다. 노이즈에서 시작하여 점진적으로 정제(denoise)하면서 관찰에 조건화된 행동 시퀀스를 생성합니다.</p>
+<p>Diffusion Policy의 핵심 강점은 세 가지입니다:</p>
+<p><strong>다중 모드 행동 분포 처리</strong>. "컵을 잡는 방법"은 여러 가지가 있습니다 — 위에서, 옆에서, 손잡이를 잡기. 결정론적 정책은 이 여러 모드의 평균을 출력하여 어떤 방법도 아닌 행동을 생성하지만, diffusion policy는 하나의 유효한 모드를 선택하여 일관된 행동을 생성합니다.</p>
+<p><strong>고차원 행동 공간 지원</strong>. Diffusion 과정은 행동 공간의 차원이 높아져도 효과적으로 작동하여, 다관절 로봇이나 dexterous manipulation에 적합합니다.</p>
+<p><strong>Action chunking</strong>. 한 번의 추론으로 여러 timestep의 행동 시퀀스를 동시에 출력합니다. 이는 추론 빈도를 줄이면서도 시간적 일관성을 유지하는 핵심 기법이며, 후속 VLA(Octo, GR00T N1)의 저수준 정책 기반이 되었습니다.</p>
+<p>12개 작업에서 기존 SOTA 대비 평균 46.9% 향상이라는 결과는 압도적이었습니다. Diffusion Policy는 VLA가 아니지만, pi0, Octo, GR00T N1의 <strong>저수준 정책 백본</strong>으로서 이 분야 전체의 기반을 형성했습니다.</p>
+</section>
+<section id="sec-6-3" class="content-section">
+<h2>6.3 3D Diffuser Actor: 3D 공간 인식의 통합</h2>
+<p>[Ke et al., 2024]의 3D Diffuser Actor는 Diffusion Policy의 2D 관찰 한계를 극복합니다. 포인트 클라우드와 3D 장면 표현을 정책 입력으로 직접 활용하여, 깊이 정보와 3D 기하학적 추론을 가능하게 합니다.</p>
+<p>3D 표현의 중요성은 조작(manipulation)에서 특히 두드러집니다. "컵을 잡아"라는 작업에서 2D 이미지만으로는 컵까지의 거리, 컵의 3D 형상, 그리퍼와 컵 사이의 공간적 관계를 정확히 파악하기 어렵습니다. 포인트 클라우드는 이 정보를 직접 제공합니다.</p>
+<p>그러나 3D 표현의 비용도 있습니다. 깊이 센서의 노이즈, 포인트 클라우드 처리의 연산 비용, 그리고 센서 배치에 따른 시야 제한이 실용적 한계입니다.</p>
+</section>
+<section id="sec-6-4" class="content-section">
+<h2>6.4 DROID: 대규모 In-the-Wild 데이터</h2>
+<p>[Khazatsky et al., 2024]의 DROID는 저수준 정책의 일반화를 데이터 규모로 해결하려는 시도입니다. 13개 기관, 564개 장면에서 76,000개 궤적을 수집한 역사상 가장 큰 규모의 in-the-wild 로봇 조작 데이터셋입니다.</p>
+<p>DROID의 핵심 가치는 <strong>환경 다양성의 내재화</strong>입니다. 단일 연구실이 아닌 전 세계의 다양한 환경에서 수집된 데이터는, 조명, 배경, 물체 종류, 테이블 높이 등의 변동을 자연스럽게 포함합니다. 이 다양성이 정책의 일반화 능력을 향상시킵니다.</p>
+<p>DROID는 Octo와 OpenVLA의 학습에 활용되었으며, Open X-Embodiment와 함께 오픈소스 VLA 생태계의 데이터 기반을 형성합니다 (<a href="ch04.html">Chapter 4</a>). 그러나 76,000 궤적이라도 인터넷 텍스트/이미지 데이터의 규모와 비교하면 여전히 미미하며, 데이터 효율성 문제는 미해결입니다.</p>
+</section>
+<section id="sec-6-5" class="content-section">
+<h2>6.5 저수준 제어의 설계 축</h2>
+<p>현재 저수준 제어의 핵심 설계 결정은 세 가지 축을 따릅니다:</p>
+<table class="styled-table">
+<thead><tr>
+<th>축</th>
+<th>선택지</th>
+<th>트레이드오프</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>행동 생성</strong></td>
+<td>Diffusion / Flow matching / Auto-regressive</td>
+<td>다봉 분포 vs 생성 속도 vs 학습 효율</td>
+</tr>
+<tr>
+<td><strong>관찰 표현</strong></td>
+<td>2D 이미지 / Depth / 포인트 클라우드 / 촉각</td>
+<td>정보량 vs 연산 비용 vs 센서 가용성</td>
+</tr>
+<tr>
+<td><strong>시간 해상도</strong></td>
+<td>Single-step / Action chunking / Trajectory</td>
+<td>반응성 vs 일관성 vs 추론 비용</td>
+</tr>
+</tbody></table>
+<p>pi0의 flow matching은 diffusion보다 빠른 생성을 가능하게 하며, FAST의 DCT 기반 토큰화는 auto-regressive 생성에서도 고주파 정밀 제어를 달성합니다. GR00T N1은 diffusion transformer로 System 1(빠른 행동)을 구현합니다. 최적의 조합은 아직 수렴하지 않았습니다.</p>
+</section>
+<section id="sec-6-6" class="content-section">
+<h2>6.6 Agentic Coding과의 대비: 대응물이 없는 영역</h2>
+<p>저수준 제어는 이 책에서 다루는 모든 주제 중 Agentic Coding과의 거리가 가장 먼 영역입니다. 이 차이가 왜 근본적인지를 세 가지로 설명할 수 있습니다.</p>
+<p><strong>결정론적 실행 vs 확률적 정책.</strong> 코드 에이전트의 모든 행동 — 파일 읽기, 코드 편집, 테스트 실행 — 은 결정론적입니다. 같은 입력에 같은 결과가 보장됩니다. Diffusion Policy는 명시적으로 확률적 정책을 학습합니다. 이것은 물리 세계의 불확실성에 대한 정직한 인정이며, 디지털 세계에서는 불필요한 복잡성입니다.</p>
+<p><strong>이산적 행동 vs 연속적 제어.</strong> 코드 에이전트의 행동은 이산적입니다 — "파일 열기", "함수 호출", "줄 편집". 각 행동의 시작과 끝이 명확합니다. 로봇의 저수준 제어는 연속적입니다 — 관절 토크나 속도를 Hz 단위로 지속적으로 출력해야 합니다. "컵을 잡았다"의 완료 시점이 불명확하며, 행동의 경계(boundary) 자체를 정의하는 것이 문제입니다.</p>
+<p><strong>접촉 역학의 부재.</strong> 코드에는 "접촉"이 없습니다. API를 호출하면 결과가 반환됩니다. 로봇의 저수준 제어에서 물체와의 물리적 접촉은 행동의 핵심입니다. 접촉 순간의 힘 분포, 마찰, 변형은 센서로 불완전하게만 관측 가능하며, 미세한 차이가 성공과 실패를 가릅니다. 이것이 로봇 조작이 "마지막 1cm의 문제"인 이유입니다.</p>
+<p>이 세 가지 차이로 인해, Agentic Coding의 성공 전략(무한 반복, 즉각 피드백, 결정론적 검증)을 저수준 제어에 직접 적용하는 것은 불가능합니다. 대신, 확률적이되 안정적인(robust) 정책, 실시간 감각 피드백의 통합, 그리고 시뮬레이션 기반 사전 검증이 필요합니다.</p>
+</section>
+<section id="sec-6-7" class="content-section">
+<h2>6.7 미해결 문제와 전망</h2>
+<p>저수준 제어의 세 가지 핵심 미해결 문제는:</p>
+<p><strong>실시간 추론 속도.</strong> Diffusion/flow matching 기반 정책의 생성 속도와 로봇의 제어 주기(100Hz+) 사이의 간극이 있습니다. Action chunking이 완화책이지만, 긴 chunk는 반응성을 떨어뜨립니다. 엣지 디바이스에서의 추론 최적화(양자화, pruning, distillation)가 실용적 해결 경로입니다 (<a href="ch10.html">Chapter 10 미해결 문제 7</a>).</p>
+<p><strong>촉각 피드백의 통합.</strong> 현재 대부분의 정책은 시각 입력에 의존합니다. 그러나 정밀 조작(계란 잡기, 천 접기, 나사 조이기)에서 촉각 피드백은 필수적입니다. 촉각 센서 데이터를 diffusion policy에 통합하는 연구는 아직 초기 단계입니다.</p>
+<p><strong>Contact-rich manipulation.</strong> 접촉이 풍부한 조작 — 문 열기, 서랍 밀기, 물건 조립 — 에서 접촉 역학을 정확히 모델링하고 제어하는 것은 여전히 극도로 어렵습니다. 현재 VLA와 diffusion policy 모두 비교적 단순한 pick-and-place에서 가장 성공적이며, contact-rich 조작으로의 확장이 다음 도전입니다.</p>
+<p>유망한 방향은 <strong>계층적 접근과의 결합</strong>입니다 (<a href="ch05.html">Chapter 5</a>). 고수준 VLM이 "무엇을 잡을지, 어디서 잡을지"를 결정하고, 저수준 diffusion policy가 "어떻게 잡을지"의 정밀 제어를 담당하는 분업이 현재 가장 효과적입니다. HAMSTER [Li et al., 2025]와 GR00T N1 [NVIDIA, 2025]이 이 방향의 대표적 사례입니다.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch05.html" class="prev">&larr; Ch.5</a>
+        <a href="./" class="toc-link">목록</a>
+        <a href="ch07.html" class="next">Ch.7 &rarr;</a>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>참고문헌</h2>
+<ol class="references-list">
+  <li id="ch6-ref-1" value="1">Chi, C. et al., "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion," arXiv:2303.04137, 2023.</li>
+  <li id="ch6-ref-2" value="2">Ke, T. et al., "3D Diffuser Actor: Policy Diffusion with 3D Scene Representations," arXiv:2402.10885, 2024.</li>
+  <li id="ch6-ref-3" value="3">Khazatsky, A. et al., "DROID: A Large-Scale In-The-Wild Robot Manipulation Dataset," arXiv:2403.12945, 2024.</li>
+  <li id="ch6-ref-4" value="4">Black, K. et al., "π0: A Vision-Language-Action Flow Model for General Robot Control," arXiv:2410.24164, 2024.</li>
+  <li id="ch6-ref-5" value="5">FAST, "Efficient Action Tokenization for Vision-Language-Action Models," arXiv:2501.09747, 2025.</li>
+  <li id="ch6-ref-6" value="6">NVIDIA, "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots," arXiv:2503.14734, 2025.</li>
+  <li id="ch6-ref-7" value="7">Li, J. et al., "HAMSTER: Hierarchical Action Models for Open-World Robot Manipulation," arXiv:2502.05485, 2025.</li>
+  <li id="ch6-ref-8" value="8">Ghosh, D. et al., "Octo: An Open-Source Generalist Robot Policy," arXiv:2405.12213, 2024.</li>
+  <li id="ch6-ref-9" value="9">Kim, M. J. et al., "OpenVLA: An Open-Source Vision-Language-Action Model," arXiv:2406.09246, 2024.</li>
+  <li id="ch6-ref-10" value="10">Open X-Embodiment Collaboration, "Open X-Embodiment: Robotic Learning Datasets and RT-X Models," arXiv:2310.08864, 2023.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch05.html" class="prev">&larr; Ch.5</a>
+        <a href="./" class="toc-link">목록</a>
+        <a href="ch07.html" class="next">Ch.7 &rarr;</a>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
