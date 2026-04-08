@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 11: Appendix — Architecture of Agentic Coding Systems</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+</head>
+<body class="lang-en">
+  <canvas id="particle-canvas"></canvas>
+
+  <header id="site-header"></header>
+  <script src="../js/header.js"></script>
+
+  <main class="chapter-page part-2">
+  <nav class="sidebar-nav part-2">
+    <a class="nav-dot active" data-section="sec-summary">
+      <span class="dot"></span>
+      <span class="label">Summary</span>
+    </a>
+    <a class="nav-dot" data-section="sec-11-1">
+      <span class="dot"></span>
+      <span class="label">11.1 Introduction: Why Examine the ...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-11-2">
+      <span class="dot"></span>
+      <span class="label">11.2 Claude Code's Architecture</span>
+    </a>
+    <a class="nav-dot" data-section="sec-11-3">
+      <span class="dot"></span>
+      <span class="label">11.3 OpenAI Codex's Architecture</span>
+    </a>
+    <a class="nav-dot" data-section="sec-11-4">
+      <span class="dot"></span>
+      <span class="label">11.4 Common Success Patterns</span>
+    </a>
+    <a class="nav-dot" data-section="sec-11-5">
+      <span class="dot"></span>
+      <span class="label">11.5 Transplanting to Agentic Robot...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-11-6">
+      <span class="dot"></span>
+      <span class="label">11.6 Future Vision: Claude Code for...</span>
+    </a>
+    <a class="nav-dot" data-section="sec-11-7">
+      <span class="dot"></span>
+      <span class="label">11.7 Conclusion</span>
+    </a>
+    <a class="nav-dot" data-section="sec-references">
+      <span class="dot"></span>
+      <span class="label">References</span>
+    </a>
+  </nav>
+
+    <article class="chapter-content">
+      <header class="chapter-header">
+        <span class="part-label">Appendix</span>
+        <h1>Chapter 11: Appendix — Architecture of Agentic Coding Systems</h1>
+        <div class="chapter-meta">
+          <span>Written: 2026-04-08</span>
+          <span>Last updated: 2026-04-08</span>
+        </div>
+      </header>
+
+<section id="sec-summary" class="content-section">
+<h2>Summary</h2>
+<p>Chapter 10 analyzed the seven-dimension gap between Agentic Coding and Agentic Robotics. This appendix dissects the internal architecture of one side of that comparison — Agentic Coding systems — in detail. By analyzing the Claude Code source code leaked in late 2025 and OpenAI Codex's publicly documented architecture, we identify <em>why</em> these structures succeed and chart how the same structural principles can be transplanted into Agentic Robotics.</p>
+</section>
+<section id="sec-11-1" class="content-section">
+<h2>11.1 Introduction: Why Examine the Internals of Coding Agents</h2>
+<p>This book's central claim is that the agentic loop is universal (see Chapter 1). Observe, plan, execute, verify, reflect, remember, retry. Claude Code and OpenAI Codex have implemented this loop at production level for software engineering. Distinguishing whether their success stems purely from model capability or from the <strong>harness</strong> engineering that wraps the model is essential.</p>
+<p>In December 2025, Anthropic accidentally included a 59.8 MB source map file in version 2.1.88 of the <code>@anthropic-ai/claude-code</code> npm package, exposing approximately 512,000 lines of TypeScript code [The Register, 2026]. By 4:23 AM ET, the discovery was broadcast on X, and within hours the codebase was mirrored across GitHub and analyzed by thousands of developers. While unintentional, this leak provided the research community with the most detailed reference implementation of an agentic system to date. Analysis revealed that <strong>60% of system experience derives from the model's raw capability, while the remaining 40% comes from meticulously engineered harness</strong> [MindStudio, 2026].</p>
+<p>This 40% of harness engineering is precisely the blueprint transplantable to Agentic Robotics.</p>
+</section>
+<section id="sec-11-2" class="content-section">
+<h2>11.2 Claude Code's Architecture</h2>
+<h3>11.2.1 Three-Layer Memory System</h3>
+<p>Claude Code's most sophisticated design is its memory architecture. Three layers handle different time horizons [MindStudio, 2026; Rajiv Pant, 2025]:</p>
+<p><strong>Layer 1 — Persistent Memory (CLAUDE.md)</strong>. The <code>CLAUDE.md</code> file at the project root is automatically read at every session start. It holds the project's "long-term memory": coding conventions, architecture decisions, frequently occurring mistake patterns. This file is re-injected every turn even when context compression occurs, ensuring critical information survives long sessions. The agent itself writes to this file, permanently storing learned patterns.</p>
+<p><strong>Layer 2 — Session Context</strong>. The full context window of the current conversation (200K+ tokens). File contents being worked on, execution results, and error messages accumulate in real time. A <code>memory.md</code> pointer-index file navigates a larger network of structured memory files.</p>
+<p><strong>Layer 3 — Tool-Based Retrieval</strong>. The Grep, Glob, and Read tools search the entire codebase on demand, pulling information not loaded into the context window when needed.</p>
+<p>The core principle of this three-layer structure is <strong>appropriate recall</strong> — not remembering everything, but surfacing the right memories at the right time [MindStudio, 2026].</p>
+<h3>11.2.2 Tool Orchestration</h3>
+<p>The leaked source code reveals Claude Code's core tool set: <strong>Read</strong> (file reading), <strong>Edit</strong> (exact string replacement), <strong>Write</strong> (file creation), <strong>Bash</strong> (shell command execution), <strong>Grep</strong> (ripgrep-based content search), <strong>Glob</strong> (file pattern matching), and <strong>Agent</strong> (subagent spawning) [Penligent, 2025].</p>
+<p>The critical detail is the <strong>routing logic</strong> for tool selection. The system prompt explicitly instructs: "Do NOT use Bash to run grep; use the built-in Grep tool instead." Each tool is optimized for a specific task, and the harness corrects the model's tendency to solve everything with the general-purpose tool (Bash). This is not merely an efficiency concern but a <strong>safety</strong> issue — since Bash can execute arbitrary commands, routing to dedicated tools reduces the probability of dangerous command execution.</p>
+<h3>11.2.3 Subagents and Parallel Execution</h3>
+<p>Claude Code's Agent tool spawns specialized subagents [code.claude.com, 2026]. Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions. Git worktrees provide filesystem isolation, enabling parallel edits without collision.</p>
+<p>A concrete example: sixteen agents across 2,000 sessions built a 100,000-line Rust-based C compiler [Morphllm, 2026]. Claude Code Review (launched March 2026) dispatches parallel agents to review pull requests, flagging problems in 84% of changes exceeding 1,000 lines.</p>
+<p>This structure is the <strong>orchestrator + specialist team</strong> pattern. The main agent decomposes tasks, and each subagent handles a specialized domain.</p>
+<h3>11.2.4 The Feedback Loop: From Error to Fix</h3>
+<p>Claude Code's core execution pattern follows this sequence:</p>
+<ol>
+<li>Modify code (Edit/Write)</li>
+<li>Run tests (Bash: <code>npm test</code>)</li>
+<li>Receive error output (structured text: filename, line number, error type)</li>
+<li>Analyze error (LLM interprets stack trace)</li>
+<li>Search related code (Grep/Read)</li>
+<li>Apply fix (Edit)</li>
+<li>Re-test (Bash)</li>
+</ol>
+<p>This loop repeats until tests pass [Anthropic, 2025]. When CI failures occur on a PR, cloud-running agents automatically detect failures, apply fixes, and push [Paddo.dev, 2026].</p>
+<p>The loop's power derives from the <strong>structuredness of errors</strong>. "File X, Line Y, TypeError: cannot read property Z of undefined" — this single line provides the exact location, exact cause, and exact fix direction. This is the essence of the Error Feedback dimension (5/5) analyzed in Chapter 10.</p>
+<h3>11.2.5 Permission Model and Safety Guardrails</h3>
+<p>Claude Code uses a granular permission system with deny-first evaluation [MindStudio, 2026]. Permissions are configurable per tool, per pattern, and per directory. Dangerous operations (file deletion, <code>git push --force</code>, etc.) require user approval by default.</p>
+<p>Built-in classifiers automatically distinguish safe from risky actions, defaulting to cautious behavior [Anthropic, 2025]. This is structurally identical to AutoRT's Robot Constitution (see Chapter 8) — predefined rules constraining the agent's action space.</p>
+</section>
+<section id="sec-11-3" class="content-section">
+<h2>11.3 OpenAI Codex's Architecture</h2>
+<h3>11.3.1 Container-Based Sandbox</h3>
+<p>Codex takes a fundamentally different approach. Each task runs in an <strong>isolated container</strong> in the cloud, with internet access disabled during execution [OpenAI, 2025]. The agent can only use code explicitly provided via GitHub repositories and pre-installed dependencies configured through a setup script.</p>
+<p>This design philosophy is <strong>safety through isolation</strong>. Where Claude Code runs in the user's local environment and ensures safety through a permission model, Codex runs in an entirely isolated environment, eliminating risk at the source. It uses Landlock and seccomp, and is the only major agent with sandboxing enabled by default [Wikipedia, 2026].</p>
+<h3>11.3.2 AGENTS.md — Codex's Counterpart to CLAUDE.md</h3>
+<p>Codex uses <code>AGENTS.md</code> files for project-specific guidance [OpenAI, 2025]. These describe how to navigate the codebase, which commands to run for testing, and how to adhere to project practices. Functionally identical to CLAUDE.md but differently named. That both systems independently converged on the same concept — <strong>persistent project memory</strong> — is noteworthy.</p>
+<h3>11.3.3 From codex-1 to GPT-5.3-Codex</h3>
+<p>Codex's initial model, codex-1, was an o3 variant optimized for software engineering [OpenAI, 2025]. It was trained via reinforcement learning on real coding tasks and iteratively runs tests until achieving passing results. In February 2026, it was upgraded to GPT-5.3-Codex, followed shortly by GPT-5.3-Codex-Spark, a lower-latency variant for real-time interactive coding [OpenAI, 2026].</p>
+<h3>11.3.4 Unified Server Architecture</h3>
+<p>By February 2026, Codex unified its CLI, VS Code extension, web app, macOS desktop app, and JetBrains/Xcode integrations under a single "App Server" architecture [OpenAI, 2026]. Long-running sessions and approval requests remain consistent across client interfaces, solving the session continuity problem across multiple interfaces.</p>
+</section>
+<section id="sec-11-4" class="content-section">
+<h2>11.4 Common Success Patterns</h2>
+<p>Synthesizing the patterns that recur across Claude Code, Codex, and the broader 2026 agentic coding ecosystem [Springer, 2025; Anthropic, 2026]:</p>
+<h3>Pattern 1: Three-Layer Memory — Persistent / Session / Retrieval</h3>
+<table class="styled-table">
+<thead><tr>
+<th>Layer</th>
+<th>Claude Code</th>
+<th>Codex</th>
+<th>Function</th>
+</tr></thead><tbody>
+<tr>
+<td>Persistent (project)</td>
+<td>CLAUDE.md</td>
+<td>AGENTS.md</td>
+<td>Project knowledge, conventions</td>
+</tr>
+<tr>
+<td>Session (conversation)</td>
+<td>Context window</td>
+<td>Container state</td>
+<td>Current task context</td>
+</tr>
+<tr>
+<td>Retrieval (on-demand)</td>
+<td>Grep/Read/Glob</td>
+<td>File system access</td>
+<td>Codebase exploration</td>
+</tr>
+</tbody></table>
+<p>That both systems independently converged on the same three-layer structure suggests this is an <strong>essential architecture</strong> for agentic systems.</p>
+<h3>Pattern 2: Structured Feedback Loop</h3>
+<p>Error, then structured text (stack trace), then LLM analysis, then targeted fix, then re-execution. The loop's efficiency is directly proportional to the <strong>structuredness and precision</strong> of feedback. Compiler errors point to exact files and lines, enabling LLMs to immediately identify fix targets.</p>
+<h3>Pattern 3: Tool Orchestration</h3>
+<p>Routing to specialized tools (Read, Edit, Grep) instead of general-purpose ones (Bash/terminal). Specialized tools are (1) safer, (2) produce structured output, and (3) provide consistent user experience. The model selects tools; the harness validates tool use.</p>
+<h3>Pattern 4: Orchestrator + Specialist Team</h3>
+<p>Instead of a single general-purpose agent handling everything, an orchestrator decomposes tasks and delegates to specialized subagents [Springer, 2025]. Multi-agent system inquiries surged 1,445% between Q1 2024 and Q2 2025. The "puppeteer" orchestrator coordinating specialist agents is becoming the standard pattern.</p>
+<h3>Pattern 5: Test-Time Computation</h3>
+<p>Codex-1 iteratively runs until tests pass. Claude Code attempts automatic fixes on CI failures. Repeated attempts at inference time dramatically improve quality over single-pass generation. This is precisely the principle CaP-X (see Chapter 3) aims to apply to robots — improvement through agentic scaffolding and trial-and-error.</p>
+<h3>Pattern 6: Human-in-the-Loop</h3>
+<p>Both systems provide a spectrum between full autonomy and full manual control. Claude Code's permission model and Codex's approval requests allow users to tune autonomy levels, defaulting to conservative. Trust is built gradually, with autonomy expanding incrementally.</p>
+</section>
+<section id="sec-11-5" class="content-section">
+<h2>11.5 Transplanting to Agentic Robotics</h2>
+<p>Mapping how these six patterns correspond in the physical world:</p>
+<h3>Three-Layer Memory to Robot Memory Systems</h3>
+<table class="styled-table">
+<thead><tr>
+<th>Agentic Coding</th>
+<th>Agentic Robotics</th>
+<th>Corresponding System</th>
+</tr></thead><tbody>
+<tr>
+<td>CLAUDE.md (persistent)</td>
+<td>Environment map + object property DB</td>
+<td>KARMA's LTM (see Ch. 7)</td>
+</tr>
+<tr>
+<td>Context window (session)</td>
+<td>Current task scene graph</td>
+<td>KARMA's STM (see Ch. 7)</td>
+</tr>
+<tr>
+<td>Grep/Read (retrieval)</td>
+<td>Spatial-semantic search</td>
+<td>Embodied-RAG (see Ch. 7)</td>
+</tr>
+</tbody></table>
+<p>KARMA's 62.7x efficiency improvement validates this three-layer structure's power in the physical world. However, the fundamental difference is that CLAUDE.md is a text file with millisecond read/write, while real-time 3D scene graph updates must contend with sensor noise, occlusion, and dynamic change.</p>
+<h3>Structured Feedback to VLM-Based Failure Diagnosis</h3>
+<p>The robotics counterpart to coding's stack traces is REFLECT's VLM-based failure summarization (see Chapter 8). However, at 69-79% accuracy, it falls far short of "File X, Line Y, TypeError" at effectively 100% accuracy. VeriGraph (see Chapter 7) attempts to structure feedback through scene graphs, but fine-grained manipulation failures remain elusive.</p>
+<p><strong>Key research direction</strong>: Converting physical errors to "code-error-level" structuredness. Semantic translation of tactile sensor data, natural language descriptions of force-torque profiles, and multimodal failure RAG are promising approaches.</p>
+<h3>Tool Orchestration to Skill Library + VLM Routing</h3>
+<p>Claude Code's tool routing is structurally identical to BUMBLE's skill library + VLM routing (see Chapter 8). The VLM observes the situation and selects the appropriate skill (navigation, grasping, drawer opening, etc.). SayCan's affordance function (see Chapter 2) follows the same principle.</p>
+<p>The difference: coding tools are deterministic with predictable outcomes; robot skills are stochastic and can fail. Robot tool orchestration therefore requires additional <strong>failure detection and fallback selection</strong> mechanisms.</p>
+<h3>Orchestrator + Specialists to Fleet Orchestration</h3>
+<p>Claude Code's subagent pattern maps to AutoRT's fleet orchestration (see Chapter 8). A central orchestrator coordinates 20+ robots simultaneously, with each robot performing specialized tasks. The Robot Constitution provides safety guardrails.</p>
+<p>The difference: coding subagents are isolated via git worktrees with no collision, while physical robots share the same space, requiring additional management of <strong>collision avoidance, resource contention, and physical interference</strong>.</p>
+<h3>The Core Lesson of Transplantation</h3>
+<p>The commonality is <strong>structure</strong>; the difference is <strong>medium</strong>. Three-layer memory, feedback loops, tool orchestration, specialist teams — these structural principles hold regardless of medium. But the three properties of the digital medium (determinism, immediacy, reversibility) collapse in the physical medium, fundamentally changing the implementation difficulty of each structural principle (see Chapter 10).</p>
+</section>
+<section id="sec-11-6" class="content-section">
+<h2>11.6 Future Vision: Claude Code for the Physical World</h2>
+<p>What would a system look like with Agentic Coding's success structure fully transplanted to robots?</p>
+<p><strong>Persistent Environment Memory</strong>: Robots maintain an "instruction manual" for their environment, analogous to CLAUDE.md. "This drawer opens by pulling left," "the living room light switch is to the right of the door" — environment knowledge learned from experience is permanently stored and loaded at every task start.</p>
+<p><strong>Structured Physical Feedback</strong>: Fusion of tactile, force-torque, and visual data generates "stack-trace-level" failure reports. "Grasp failure at step 3: insufficient grip force (measured 2.1N, required 4.5N) due to wet surface — retry with increased force and slower approach."</p>
+<p><strong>Specialist Robot Teams</strong>: Navigation-specialist robots, precision-manipulation-specialist robots, and inspection-specialist drones collaborate under orchestrator coordination. When a specialist fails, the orchestrator selects alternatives.</p>
+<p><strong>Test-Time Trial and Error</strong>: Multiple strategies are tried in parallel in simulation, and the highest-probability strategy is executed in the physical world. On failure, the system returns to simulation for replanning.</p>
+<p>Each element of this vision has already been demonstrated in individual research efforts. Integration remains the open challenge.</p>
+</section>
+<section id="sec-11-7" class="content-section">
+<h2>11.7 Conclusion</h2>
+<p>The success of Agentic Coding systems cannot be explained by model capability alone. The 40% of harness engineering — three-layer memory, structured feedback loops, specialized tool orchestration, subagent teams, and permission models — is an essential condition for success.</p>
+<p>These structural principles are medium-independent. KARMA's memory, REFLECT's feedback, BUMBLE's skill routing, and AutoRT's fleet orchestration are all physical-world implementations of the same principles. The gap originates not in structure but in the properties of the medium — nondeterminism, latency, and irreversibility.</p>
+<p>Building "Claude Code for the physical world" is not about inventing new structures. It is about <strong>adapting</strong> proven structures within the constraints of the physical world. Charting this adaptation path is this book's core contribution, and this appendix provides the starting point — a detailed blueprint of the original structure.</p>
+</section>
+      <nav class="chapter-nav">
+        <a href="ch10.html" class="prev">&larr; Ch.10</a>
+        <a href="./" class="toc-link">Index</a>
+        <span class="placeholder"></span>
+      </nav>
+<section id="sec-references" class="content-section">
+<h2>References</h2>
+<ol class="references-list">
+  <li id="ch11-ref-1" value="1">The Register, "Claude Code's innards revealed as source code leaked online," theregister.com, April 2026.</li>
+  <li id="ch11-ref-2" value="2">MindStudio, "Claude Code Source Leak: The Three-Layer Memory Architecture and What It Means for Builders," mindstudio.ai/blog, 2026.</li>
+  <li id="ch11-ref-3" value="3">Rajiv Pant, "How Claude's Memory Actually Works (And Why CLAUDE.md Matters)," rajiv.com/blog, December 2025.</li>
+  <li id="ch11-ref-4" value="4">Penligent, "Inside Claude Code: The Architecture Behind Tools, Memory, Hooks, and MCP," penligent.ai, 2025.</li>
+  <li id="ch11-ref-5" value="5">VentureBeat, "Claude Code's source code appears to have leaked: here's what we know," venturebeat.com, 2026.</li>
+  <li id="ch11-ref-6" value="6">Anthropic, "Claude Code Best Practices," anthropic.com/engineering, 2025.</li>
+  <li id="ch11-ref-7" value="7">OpenAI, "Introducing Codex," openai.com/index/introducing-codex, May 2025.</li>
+  <li id="ch11-ref-8" value="8">OpenAI, "Introducing the Codex App," openai.com/index/introducing-the-codex-app, February 2026.</li>
+  <li id="ch11-ref-9" value="9">OpenAI, "Introducing upgrades to Codex," openai.com/index/introducing-upgrades-to-codex, 2026.</li>
+  <li id="ch11-ref-10" value="10">Wikipedia, "OpenAI Codex (AI agent)," en.wikipedia.org, 2026.</li>
+  <li id="ch11-ref-11" value="11">Morphllm, "Claude Code as Orchestrator: Inter-Agent Communication Protocols," morphllm.com, 2026.</li>
+  <li id="ch11-ref-12" value="12">Morphllm, "Claude Code Subagents: How They Work, What They See & When to Use Them," morphllm.com, 2026.</li>
+  <li id="ch11-ref-13" value="13">Paddo.dev, "Claude Code Auto-Fix: The PR That Fixes Itself," paddo.dev/blog, 2026.</li>
+  <li id="ch11-ref-14" value="14">Springer, "Agentic AI: A Comprehensive Survey of Architectures, Applications, and Future Directions," Artificial Intelligence Review, 2025.</li>
+  <li id="ch11-ref-15" value="15">Anthropic, "2026 Agentic Coding Trends Report," resources.anthropic.com, 2026.</li>
+  <li id="ch11-ref-16" value="16">Claude Code Docs, "Create custom subagents," code.claude.com/docs/en/sub-agents, 2026.</li>
+  <li id="ch11-ref-17" value="17">Claude Code Docs, "How Claude remembers your project," code.claude.com/docs/en/memory, 2026.</li>
+  <li id="ch11-ref-18" value="18">Dbreunig, "How Claude Code Builds a System Prompt," dbreunig.com, April 2026.</li>
+  <li id="ch11-ref-19" value="19">Liu, Z. et al., "REFLECT: Summarizing Robot Experiences for Failure Explanation and Correction," arXiv:2306.15724, 2023.</li>
+  <li id="ch11-ref-20" value="20">Wang, Z. et al., "KARMA: Augmenting Embodied AI Agents with Long-and-short Term Memory Systems," arXiv:2409.14908, 2024.</li>
+  <li id="ch11-ref-21" value="21">Xie, Q. et al., "Embodied-RAG: General Non-parametric Embodied Memory for Retrieval and Generation," arXiv:2409.18313, 2024.</li>
+  <li id="ch11-ref-22" value="22">Brohan, A. et al., "AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents," arXiv:2401.12963, 2024.</li>
+  <li id="ch11-ref-23" value="23">Shah, M. et al., "BUMBLE: Unifying Reasoning and Acting with VLMs for Building-wide Mobile Manipulation," arXiv:2410.06237, 2024.</li>
+  <li id="ch11-ref-24" value="24">Fu, M. et al., "CaP-X: Benchmarking Coding Agents for Robot Manipulation," arXiv:2603.22435, 2026.</li>
+</ol>
+</section>
+
+      <nav class="chapter-nav">
+        <a href="ch10.html" class="prev">&larr; Ch.10</a>
+        <a href="./" class="toc-link">Index</a>
+        <span class="placeholder"></span>
+      </nav>
+    </article>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../js/footer.js"></script>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../js/chapter.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof katex !== 'undefined') {
+        // Render .math-inline and .math-block elements
+        document.querySelectorAll('.math-inline').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: false });
+        });
+        document.querySelectorAll('.math-block').forEach(function(el) {
+          katex.render(el.textContent, el, { throwOnError: false, displayMode: true });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

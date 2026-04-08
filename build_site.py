@@ -22,6 +22,7 @@ CHAPTERS_KO = {
     8: {"title": "폐루프 에이전틱 시스템", "part": "Part III: 에이전틱 로보틱스를 향하여", "part_num": 3},
     9: {"title": "Sim-to-Real 전이와 평가", "part": "Part III: 에이전틱 로보틱스를 향하여", "part_num": 3},
     10: {"title": "Agentic Coding vs Agentic Robotics — 간극과 미래", "part": "Part IV: 근본적 차이", "part_num": 4},
+    11: {"title": "참고 — Agentic Coding 시스템의 구조", "part": "Appendix", "part_num": 2},
 }
 
 CHAPTERS_EN = {
@@ -35,9 +36,10 @@ CHAPTERS_EN = {
     8: {"title": "Closed-Loop Agentic Systems", "part": "Part III: Toward Agentic Robotics", "part_num": 3},
     9: {"title": "Sim-to-Real Transfer and Evaluation", "part": "Part III: Toward Agentic Robotics", "part_num": 3},
     10: {"title": "Agentic Coding vs Agentic Robotics — The Gap and the Future", "part": "Part IV: Fundamental Differences", "part_num": 4},
+    11: {"title": "Appendix — Architecture of Agentic Coding Systems", "part": "Appendix", "part_num": 2},
 }
 
-NUM_CHAPTERS = 10
+NUM_CHAPTERS = 11
 
 
 def parse_frontmatter(md):
@@ -980,6 +982,12 @@ def build_toc_ko():
       <div class="part-group part-2">
         <h2 class="part-title">부록 (Appendices)</h2>
         <div class="chapter-grid">
+          <a href="ch11.html" class="chapter-card fade-in">
+            <span class="ch-num">11</span>
+            <h3>참고 &mdash; Agentic Coding 시스템의 구조</h3>
+            <p>Claude Code, Codex의 메모리/피드백/하네스 구조와 성공 비결</p>
+            <span class="arrow">&rarr;</span>
+          </a>
           <a href="references.html" class="chapter-card fade-in">
             <span class="ch-num">A</span>
             <h3>통합 참고문헌 (References)</h3>
@@ -1149,6 +1157,12 @@ def build_toc_en():
       <div class="part-group part-2">
         <h2 class="part-title">Appendices</h2>
         <div class="chapter-grid">
+          <a href="ch11.html" class="chapter-card fade-in">
+            <span class="ch-num">11</span>
+            <h3>Appendix &mdash; Architecture of Agentic Coding Systems</h3>
+            <p>Claude Code, Codex memory/feedback/harness architecture and success factors</p>
+            <span class="arrow">&rarr;</span>
+          </a>
           <a href="references.html" class="chapter-card fade-in">
             <span class="ch-num">A</span>
             <h3>Consolidated References</h3>

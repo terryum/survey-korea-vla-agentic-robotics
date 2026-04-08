@@ -125,6 +125,26 @@ last_updated: "2026-04-08"
 
 ## Appendices
 
+**Chapter 11. Appendix — Architecture of Agentic Coding Systems**
+- 11.1 Introduction: Why Examine the Internals of Coding Agents
+- 11.2 Claude Code's Architecture
+  - Three-Layer Memory System (CLAUDE.md / Session Context / Tool-Based Retrieval)
+  - Tool Orchestration (Read, Edit, Bash, Grep, Agent)
+  - Subagents and Parallel Execution
+  - The Feedback Loop: From Error to Fix
+  - Permission Model and Safety Guardrails
+- 11.3 OpenAI Codex's Architecture
+  - Container-Based Sandbox
+  - AGENTS.md — Codex's Counterpart to CLAUDE.md
+  - From codex-1 to GPT-5.3-Codex
+  - Unified Server Architecture
+- 11.4 Common Success Patterns (Six Patterns)
+- 11.5 Transplanting to Agentic Robotics
+- 11.6 Future Vision: Claude Code for the Physical World
+- 11.7 Conclusion
+
+---
+
 - A. Paper Influence Map (Four Research Flows)
 - B. Research Group Contributions
 - C. Key Abbreviations and Glossary
