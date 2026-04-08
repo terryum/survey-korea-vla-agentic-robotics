@@ -787,7 +787,7 @@ def build_index_html():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>From LLM Planners to Agentic Robotics</title>
+  <title>Toward Agentic Robotics</title>
   <link rel="stylesheet" href="css/style.css">
   <script>
     (function() {
@@ -809,7 +809,7 @@ def build_index_html():
   <canvas id="particle-canvas"></canvas>
 
   <main class="lang-landing">
-    <h1 class="gradient-text">From LLM Planners to Agentic Robotics</h1>
+    <h1 class="gradient-text">Toward Agentic Robotics</h1>
     <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; text-align: center; line-height: 1.8;">
       The Future of Physical AI &mdash; Tracing the evolution from LLM-based planning through VLA to agentic robotics
     </p>
@@ -841,7 +841,7 @@ def build_toc_ko():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LLM 플래너에서 에이전틱 로보틱스까지</title>
+  <title>Toward Agentic Robotics</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -852,7 +852,7 @@ def build_toc_ko():
 
   <main>
     <section class="hero">
-      <h1 class="gradient-text">LLM 플래너에서 에이전틱 로보틱스까지</h1>
+      <h1 class="gradient-text">Toward Agentic Robotics</h1>
       <p class="subtitle">Physical AI의 미래 &mdash; LLM 기반 계획에서 VLA, Code as Policy를 거쳐 에이전틱 로보틱스로</p>
       <p class="description">
         Agentic Coding의 code&rarr;tool&rarr;execution&rarr;error&rarr;LLM 루프가 물리 세계에서 작동하려면 무엇이 달라져야 하는가? &mdash; 4 Parts, 10 Chapters
@@ -1016,7 +1016,7 @@ def build_toc_en():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>From LLM Planners to Agentic Robotics</title>
+  <title>Toward Agentic Robotics</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body class="lang-en">
@@ -1027,7 +1027,7 @@ def build_toc_en():
 
   <main>
     <section class="hero">
-      <h1 class="gradient-text">From LLM Planners to Agentic Robotics</h1>
+      <h1 class="gradient-text">Toward Agentic Robotics</h1>
       <p class="subtitle">The Future of Physical AI &mdash; Tracing the evolution from LLM-based planning through VLA to agentic robotics</p>
       <p class="description">
         What must change for the agentic coding loop (code&rarr;tool&rarr;execution&rarr;error&rarr;LLM) to work in the physical world? &mdash; 4 Parts, 10 Chapters

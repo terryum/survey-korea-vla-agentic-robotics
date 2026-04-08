@@ -1,6 +1,6 @@
 English | [한국어](README_ko.md)
 
-# From LLM Planners to Agentic Robotics: The Future of Physical AI
+# Toward Agentic Robotics: The Future of Physical AI
 
 A bilingual (Korean/English) survey book tracing the evolution from LLM-based robot planning through VLA and Code as Policy to agentic robotics — comparing agentic coding and agentic robotics to illuminate the fundamental differences in the physical world.
 

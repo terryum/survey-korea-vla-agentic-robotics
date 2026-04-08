@@ -5,7 +5,7 @@ date: "2026-04-08"
 last_updated: "2026-04-08"
 ---
 
-# From LLM Planners to Agentic Robotics — The Future of Physical AI
+# Toward Agentic Robotics — The Future of Physical AI
 
 ## Table of Contents
 

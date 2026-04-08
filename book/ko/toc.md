@@ -5,7 +5,7 @@ date: "2026-04-08"
 last_updated: "2026-04-08"
 ---
 
-# LLM 플래너에서 에이전틱 로보틱스까지 — Physical AI의 미래
+# Toward Agentic Robotics — Physical AI의 미래
 
 ## 목차
 
